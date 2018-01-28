@@ -12,18 +12,7 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-UP_EXTRACT_DIR = ..
-GEN_LIBS = libsrc.a
-COMPONENTS_libsrc = guider/libguider.a \
-    mqtt/libmqtt.a \
-    ota/libota.a \
-    security/libsecurity.a \
-    shadow/libshadow.a \
-    system/libsystem.a \
-    packages/libpackages.a \
-    utils/libutils.a \
-    sdk-impl/libsdk-impl.a \
-    platform/libplatform.a
+GEN_LIBS = libplatform_ssl.a
 endif
 
 

@@ -12,7 +12,10 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-GEN_LIBS = libsrc.a
+UP_EXTRACT_DIR = ..
+GEN_LIBS = libplatform.a
+COMPONENTS_libplatform = ssl/libplatform_ssl.a \
+    os/libplatform_os.a
 endif
 
 

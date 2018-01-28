@@ -14,8 +14,7 @@
 ifndef PDIR
 UP_EXTRACT_DIR = ..
 GEN_LIBS = libaliyun.a
-COMPONENTS_libaliyun = platform/libplatform.a	\
-IoT-SDK_V2.0/libIoT-SDK_V2.0.a
+COMPONENTS_libaliyun = IoT-SDK_V2.0/libIoT-SDK_V2.0.a
 endif
 
 

@@ -13,8 +13,8 @@
 #
 ifndef PDIR
 UP_EXTRACT_DIR = ..
-GEN_LIBS = libplatform.a
-COMPONENTS_libplatform = src/libsrc.a	
+GEN_LIBS = libplatform_os.a
+COMPONENTS_libplatform_os = esp8266_rtos/libplatform_os.a	
 endif
 
 
