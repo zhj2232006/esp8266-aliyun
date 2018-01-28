@@ -73,7 +73,7 @@ typedef enum {
 /* topic information */
 typedef struct {
     uint16_t        packet_id;
-    uint8_t         qos;
+    uint32_t         qos;
     uint8_t         dup;
     uint8_t         retain;
     uint16_t        topic_len;
