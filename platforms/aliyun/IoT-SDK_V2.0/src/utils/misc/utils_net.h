@@ -44,16 +44,16 @@ struct utils_network {
     uintptr_t handle;
 
     /**< Read data from server function pointer. */
-    int (*read)(utils_network_pt, char *, uint32_t, uint32_t);
+    int (*fp_read)(utils_network_pt, char *, uint32_t, uint32_t);
 
     /**< Send data to server function pointer. */
-    int (*write)(utils_network_pt, const char *, uint32_t, uint32_t);
+    int (*fp_write)(utils_network_pt, const char *, uint32_t, uint32_t);
 
     /**< Disconnect the network */
-    int (*disconnect)(utils_network_pt);
+    int (*fp_disconnect)(utils_network_pt);
 
     /**< Establish the network */
-    int (*connect)(utils_network_pt);
+    int (*fp_connect)(utils_network_pt);
 };
 
 

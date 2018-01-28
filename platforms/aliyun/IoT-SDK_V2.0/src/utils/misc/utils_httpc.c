@@ -41,11 +41,6 @@
     #define DEBUG_LEVEL 2
 #endif
 
-#undef write
-#undef read
-#undef connect
-
-
 static int httpclient_parse_host(const char *url, char *host, uint32_t maxhost_len);
 static int httpclient_parse_url(const char *url, char *scheme, uint32_t max_scheme_len, char *host,
                                 uint32_t maxhost_len, int *port, char *path, uint32_t max_path_len);
@@ -80,7 +75,7 @@ static void httpclient_base64enc(char *out, const char *in)
 
 int httpclient_conn(httpclient_t *client)
 {
-    if (0 != client->net.connect(&client->net)) {
+    if (0 != client->net.fp_connect(&client->net)) {
         log_err("establish connection failed");
         return ERROR_HTTP_CONN;
     }
@@ -209,7 +204,7 @@ int httpclient_get_info(httpclient_t *client, char *send_buf, int *send_idx, cha
             //                return ERROR_HTTP;
             //            }
             //ret = httpclient_tcp_send_all(client->handle, send_buf, HTTPCLIENT_SEND_BUF_SIZE);
-            ret = client->net.write(&client->net, send_buf, HTTPCLIENT_SEND_BUF_SIZE, 5000);
+            ret = client->net.fp_write(&client->net, send_buf, HTTPCLIENT_SEND_BUF_SIZE, 5000);
             if (ret) {
                 return (ret);
             }
@@ -319,7 +314,7 @@ int httpclient_send_header(httpclient_t *client, const char *url, int method, ht
     log_multi_line(LOG_DEBUG_LEVEL, "REQUEST", "%s", send_buf, ">");
 
     //ret = httpclient_tcp_send_all(client->net.handle, send_buf, len);
-    ret = client->net.write(&client->net, send_buf, len, 5000);
+    ret = client->net.fp_write(&client->net, send_buf, len, 5000);
     if (ret > 0) {
         log_debug("Written %d bytes", ret);
     } else if (ret == 0) {
@@ -341,7 +336,7 @@ int httpclient_send_userdata(httpclient_t *client, httpclient_data_t *client_dat
         log_debug("client_data->post_buf: %s", client_data->post_buf);
         {
             //ret = httpclient_tcp_send_all(client->handle, (char *)client_data->post_buf, client_data->post_buf_len);
-            ret = client->net.write(&client->net, (char *)client_data->post_buf, client_data->post_buf_len, 5000);
+            ret = client->net.fp_write(&client->net, (char *)client_data->post_buf, client_data->post_buf_len, 5000);
             if (ret > 0) {
                 log_debug("Written %d bytes", ret);
             } else if (ret == 0) {
@@ -368,7 +363,7 @@ int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max_len, i
 
     *p_read_len = 0;
 
-    ret = client->net.read(&client->net, buf, max_len, iotx_time_left(&timer));
+    ret = client->net.fp_read(&client->net, buf, max_len, iotx_time_left(&timer));
     //log_debug("Recv: | %s", buf);
 
     if (ret > 0) {
@@ -768,7 +763,7 @@ iotx_err_t httpclient_recv_response(httpclient_t *client, uint32_t timeout_ms, h
 void httpclient_close(httpclient_t *client)
 {
     if (client->net.handle > 0) {
-        client->net.disconnect(&client->net);
+        client->net.fp_disconnect(&client->net);
     }
     client->net.handle = 0;
 }

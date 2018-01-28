@@ -195,10 +195,10 @@ int iotx_net_init(utils_network_pt pNetwork, const char *host, uint16_t port, co
     }
 
     pNetwork->handle = 0;
-    pNetwork->read = utils_net_read;
-    pNetwork->write = utils_net_write;
-    pNetwork->disconnect = iotx_net_disconnect;
-    pNetwork->connect = iotx_net_connect;
+    pNetwork->fp_read = utils_net_read;
+    pNetwork->fp_write = utils_net_write;
+    pNetwork->fp_disconnect = iotx_net_disconnect;
+    pNetwork->fp_connect = iotx_net_connect;
 
     return 0;
 }

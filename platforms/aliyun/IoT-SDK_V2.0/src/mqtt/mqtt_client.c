@@ -34,10 +34,6 @@
 #include "MQTTPacket/MQTTPacket.h"
 #include "mqtt_client.h"
 
-#undef write
-#undef read
-#undef connect
-
 #ifdef MQTT_ID2_CRYPTO
 /* Macros for accessing the most offset byte of a number */
 #define MQTT_MS(A, OFFSET) ((A << (sizeof(A) - (OFFSET))*8) >> (sizeof(A) - 1) * 8)
@@ -979,7 +975,7 @@ static int iotx_mc_send_packet(iotx_mc_client_t *c, char *buf, int length, iotx_
     }
 
     while (sent < length && !utils_time_is_expired(time)) {
-        rc = c->ipstack->write(c->ipstack, &buf[sent], length, iotx_time_left(time));
+        rc = c->ipstack->fp_write(c->ipstack, &buf[sent], length, iotx_time_left(time));
         if (rc < 0) { // there was an error writing the data
             break;
         }
@@ -1015,7 +1011,7 @@ static int iotx_mc_decode_packet(iotx_mc_client_t *c, int *value, int timeout)
             return MQTTPACKET_READ_ERROR; /* bad data */
         }
 
-        rc = c->ipstack->read(c->ipstack, &i, 1, timeout);
+        rc = c->ipstack->fp_read(c->ipstack, &i, 1, timeout);
         if (rc != 1) {
             return MQTT_NETWORK_ERROR;
         }
@@ -1041,7 +1037,7 @@ static int iotx_mc_read_packet(iotx_mc_client_t *c, iotx_time_t *timer, unsigned
     }
 
     /* 1. read the header byte.  This has the packet type in it */
-    rc = c->ipstack->read(c->ipstack, c->buf_read, 1, iotx_time_left(timer));
+    rc = c->ipstack->fp_read(c->ipstack, c->buf_read, 1, iotx_time_left(timer));
     if (0 == rc) { // timeout
         *packet_type = 0;
         return SUCCESS_RETURN;
@@ -1065,7 +1061,7 @@ static int iotx_mc_read_packet(iotx_mc_client_t *c, iotx_time_t *timer, unsigned
     if ((rem_len > 0) && ((rem_len + len) > c->buf_size_read)) {
         log_err("mqtt read buffer is too short, mqttReadBufLen : %u, remainDataLen : %d", c->buf_size_read, rem_len);
         int needReadLen = c->buf_size_read - len;
-        if (c->ipstack->read(c->ipstack, c->buf_read + len, needReadLen, iotx_time_left(timer)) != needReadLen) {
+        if (c->ipstack->fp_read(c->ipstack, c->buf_read + len, needReadLen, iotx_time_left(timer)) != needReadLen) {
             log_err("mqtt read error");
             return FAIL_RETURN;
         }
@@ -1078,7 +1074,7 @@ static int iotx_mc_read_packet(iotx_mc_client_t *c, iotx_time_t *timer, unsigned
             return FAIL_RETURN;
         }
 
-        if (c->ipstack->read(c->ipstack, remainDataBuf, remainDataLen, iotx_time_left(timer)) != remainDataLen) {
+        if (c->ipstack->fp_read(c->ipstack, remainDataBuf, remainDataLen, iotx_time_left(timer)) != remainDataLen) {
             log_err("mqtt read error");
             LITE_free(remainDataBuf);
             remainDataBuf = NULL;
@@ -1093,7 +1089,7 @@ static int iotx_mc_read_packet(iotx_mc_client_t *c, iotx_time_t *timer, unsigned
     }
 
     /* 3. read the rest of the buffer using a callback to supply the rest of the data */
-    if (rem_len > 0 && (c->ipstack->read(c->ipstack, c->buf_read + len, rem_len, iotx_time_left(timer)) != rem_len)) {
+    if (rem_len > 0 && (c->ipstack->fp_read(c->ipstack, c->buf_read + len, rem_len, iotx_time_left(timer)) != rem_len)) {
         log_err("mqtt read error");
         return FAIL_RETURN;
     }
@@ -2138,7 +2134,7 @@ static void iotx_mc_keepalive(iotx_mc_client_t *pClient)
             utils_time_countdown_ms(&(pClient->reconnect_param.reconnect_next_time),
                                pClient->reconnect_param.reconnect_time_interval_ms);
 
-            pClient->ipstack->disconnect(pClient->ipstack);
+            pClient->ipstack->fp_disconnect(pClient->ipstack);
             iotx_mc_set_client_state(pClient, IOTX_MC_STATE_DISCONNECTED_RECONNECTING);
             break;
         }
@@ -2258,10 +2254,10 @@ static int iotx_mc_connect(iotx_mc_client_t *pClient)
 
     /*Establish TCP or TLS connection*/
     //printf("file:%s function:%s line:%d heap size:%d\n",__FILE__,__FUNCTION__,__LINE__, system_get_free_heap_size());
-    rc = pClient->ipstack->connect(pClient->ipstack);
+    rc = pClient->ipstack->fp_connect(pClient->ipstack);
     //printf("file:%s function:%s line:%d heap size:%d rc:%d\n",__FILE__,__FUNCTION__,__LINE__, system_get_free_heap_size(), rc);
     if (SUCCESS_RETURN != rc) {
-        pClient->ipstack->disconnect(pClient->ipstack);
+        pClient->ipstack->fp_disconnect(pClient->ipstack);
         log_err("TCP or TLS Connection failed");
 
         if (ERROR_CERTIFICATE_EXPIRED == rc) {
@@ -2277,13 +2273,13 @@ static int iotx_mc_connect(iotx_mc_client_t *pClient)
               pClient->connect_data.password.cstring);
     rc = MQTTConnect(pClient);
     if (rc  != SUCCESS_RETURN) {
-        pClient->ipstack->disconnect(pClient->ipstack);
+        pClient->ipstack->fp_disconnect(pClient->ipstack);
         log_err("send connect packet failed");
         return rc;
     }
     if (SUCCESS_RETURN != iotx_mc_wait_CONNACK(pClient)) {
         (void)MQTTDisconnect(pClient);
-        pClient->ipstack->disconnect(pClient->ipstack);
+        pClient->ipstack->fp_disconnect(pClient->ipstack);
         log_err("wait connect ACK timeout, or receive a ACK indicating error!");
         return MQTT_CONNECT_ERROR;
     }
@@ -2378,7 +2374,7 @@ static int iotx_mc_disconnect(iotx_mc_client_t *pClient)
     (void)MQTTDisconnect(pClient);
     //printf("file:%s function:%s line:%d heap size:%d\n",__FILE__,__FUNCTION__,__LINE__, system_get_free_heap_size());
     /*close tcp/ip socket or free tls resources*/
-    pClient->ipstack->disconnect(pClient->ipstack);
+    pClient->ipstack->fp_disconnect(pClient->ipstack);
     //printf("file:%s function:%s line:%d heap size:%d\n",__FILE__,__FUNCTION__,__LINE__, system_get_free_heap_size());
     iotx_mc_set_client_state(pClient, IOTX_MC_STATE_INITIALIZED);
 
