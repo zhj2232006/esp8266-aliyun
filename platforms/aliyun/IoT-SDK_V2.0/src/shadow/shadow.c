@@ -20,8 +20,6 @@
 #include "iot_import.h"
 
 #include "utils_list.h"
-#include "utils_debug.h"
-#include "mqtt_client.h"
 #include "lite-utils.h"
 #include "shadow.h"
 #include "shadow_common.h"
@@ -29,7 +27,7 @@
 #include "shadow_delta.h"
 
 
-//check return code
+/* check return code */
 #define CHECK_RETURN_CODE(ret_code) \
     do{ \
         if (ret_code < 0) { \
@@ -38,7 +36,7 @@
     }while(0);
 
 
-//check return code of snprintf
+/* check return code of snprintf */
 #define CHECK_SNPRINTF_RET(ret_code, buf_len) \
     do{ \
         if ((ret_code) < 0) { \
@@ -55,7 +53,7 @@ static void iotx_ds_handle_expire(iotx_shadow_pt pshadow)
 }
 
 
-//This function will be called back when message published to topic(/shadow/get/) arrives.
+/* This function will be called back when message published to topic(/shadow/get/) arrives. */
 static void iotx_shadow_callback_get(iotx_shadow_pt pshadow, void *pclient, iotx_mqtt_event_msg_pt msg)
 {
     const char *pname;
@@ -65,27 +63,27 @@ static void iotx_shadow_callback_get(iotx_shadow_pt pshadow, void *pclient, iotx
     log_debug("topic=%.*s", topic_info->topic_len, topic_info->ptopic);
     log_debug("data of topic=%.*s", topic_info->payload_len, (char *)topic_info->payload);
 
-    //update time if there is 'timestamp' key in JSON string
+    /* update time if there is 'timestamp' key in JSON string */
     pname = LITE_json_value_of((char *)"timestamp", (char *)topic_info->payload);
     if (NULL != pname) {
         iotx_ds_common_update_time(pshadow, atoi(pname));
     }
     LITE_free(pname);
 
-    //update 'version' if there is 'version' key in JSON string
+    /* update 'version' if there is 'version' key in JSON string */
     pname = LITE_json_value_of((char *)"version", (char *)topic_info->payload);
     if (NULL != pname) {
         iotx_ds_common_update_version(pshadow, atoi(pname));
         LITE_free(pname);
     }
 
-    //get 'method'
+    /* get 'method' */
     pname = LITE_json_value_of((char *)"method", (char *)topic_info->payload);
-    log_debug("pname(%d) = %s", (int)strlen(pname), pname);
+    /* log_debug("pname(%d) = %s", (int)strlen(pname), pname); */
     if (NULL == pname) {
         log_err("Invalid JSON document: not 'method' key");
     } else if ((strlen("control") == strlen(pname)) && !strcmp(pname, "control")) {
-        //call delta handle function
+        /* call delta handle function */
         log_debug("receive 'control' method");
 
         iotx_shadow_delta_entry(
@@ -94,7 +92,7 @@ static void iotx_shadow_callback_get(iotx_shadow_pt pshadow, void *pclient, iotx
                     topic_info->payload_len);
         LITE_free(pname);
     } else if ((strlen("reply") == strlen(pname)) && !strcmp(pname, "reply")) {
-        //call update ACK handle function.
+        /* call update ACK handle function. */
         log_debug("receive 'reply' method");
         iotx_ds_update_wait_ack_list_handle_response(
                     pshadow,
@@ -109,7 +107,7 @@ static void iotx_shadow_callback_get(iotx_shadow_pt pshadow, void *pclient, iotx
     log_debug("End of method handle");
 }
 
-static iotx_err_t iotx_shadow_subcribe_get(iotx_shadow_pt pshadow)
+static int iotx_shadow_subcribe_get(iotx_shadow_pt pshadow)
 {
     if (NULL == pshadow->inner_data.ptopic_get) {
         pshadow->inner_data.ptopic_get = iotx_ds_common_generate_topic_name(pshadow, "get");
@@ -119,25 +117,25 @@ static iotx_err_t iotx_shadow_subcribe_get(iotx_shadow_pt pshadow)
     }
 
     return IOT_MQTT_Subscribe(pshadow->mqtt,
-                               pshadow->inner_data.ptopic_get,
-                               IOTX_MQTT_QOS1,
-                               (iotx_mqtt_event_handle_func_fpt)iotx_shadow_callback_get,
-                               pshadow);
+                              pshadow->inner_data.ptopic_get,
+                              IOTX_MQTT_QOS1,
+                              (iotx_mqtt_event_handle_func_fpt)iotx_shadow_callback_get,
+                              pshadow);
 }
 
 
 iotx_err_t IOT_Shadow_PushFormat_Init(void *pshadow,
-        format_data_pt pformat,
-        char *buf,
-        uint16_t size)
+                                      format_data_pt pformat,
+                                      char *buf,
+                                      uint16_t size)
 {
     return iotx_ds_common_format_init((iotx_shadow_pt)pshadow, pformat, buf, size, "update", "\"state\":{\"reported\":{");
 }
 
 
 iotx_err_t IOT_Shadow_PushFormat_Add(void *pshadow,
-        format_data_pt pformat,
-        iotx_shadow_attr_pt pattr)
+                                     format_data_pt pformat,
+                                     iotx_shadow_attr_pt pattr)
 {
     return iotx_ds_common_format_add((iotx_shadow_pt)pshadow, pformat, pattr->pattr_name, pattr->pattr_data,
                                      pattr->attr_type);
@@ -150,7 +148,7 @@ iotx_err_t IOT_Shadow_PushFormat_Finalize(void *pshadow, format_data_pt pformat)
 }
 
 
-iotx_err_t IOT_Shadow_Push_Async(
+int IOT_Shadow_Push_Async(
             void *handle,
             char *data,
             size_t data_len,
@@ -177,7 +175,7 @@ iotx_err_t IOT_Shadow_Push_Async(
     log_debug("data(%d) = %s", (int)data_len, data);
     ptoken = LITE_json_value_of((char *)"clientToken", (char *)data);
 
-    IOTX_ASSERT(NULL != ptoken, "Token should always exist.");
+    LITE_ASSERT(NULL != ptoken);
 
     pelement = iotx_shadow_update_wait_ack_list_add(pshadow, ptoken, strlen(ptoken), cb_fpt, pcontext, timeout_s);
     if (NULL == pelement) {
@@ -198,8 +196,8 @@ iotx_err_t IOT_Shadow_Push_Async(
 
 static void iotx_update_ack_cb(
             void *pcontext,
-            iotx_shadow_ack_code_t ack_code,
-            const char *ack_msg, //NOTE: NOT a string.
+            int ack_code,
+            const char *ack_msg, /* NOTE: NOT a string. */
             uint32_t ack_msg_len)
 {
     log_debug("ack_code=%d", ack_code);
@@ -210,7 +208,7 @@ static void iotx_update_ack_cb(
         log_debug("ack_msg is NULL");
     }
 
-    *((iotx_shadow_ack_code_t *)pcontext) = ack_code;
+    *((int *)pcontext) = ack_code;
 }
 
 
@@ -232,17 +230,17 @@ iotx_err_t IOT_Shadow_Push(
         return ERROR_SHADOW_INVALID_STATE;
     }
 
-    //update asynchronously
+    /* update asynchronously */
     IOT_Shadow_Push_Async(pshadow, data, data_len, timeout_s, iotx_update_ack_cb, &ack_update);
 
-    //wait ACK
+    /* wait ACK */
     while (IOTX_SHADOW_ACK_NONE == ack_update) {
         IOT_Shadow_Yield(pshadow, 200);
     }
 
     if ((IOTX_SHADOW_ACK_SUCCESS == ack_update)
         || (IOTX_SHADOW_ACK_ERR_SHADOW_DOCUMENT_IS_NULL == ack_update)) {
-        //It is not the error that device shadow document is null
+        /* It is not the error that device shadow document is null */
         log_info("update success.");
         return SUCCESS_RETURN;
     } else if (IOTX_SHADOW_ACK_TIMEOUT == ack_update) {
@@ -328,7 +326,7 @@ void iotx_ds_event_handle(void *pcontext, void *pclient, iotx_mqtt_event_msg_pt 
             break;
 
         default:
-            //log_info("Should NOT arrive here.");
+            /* log_info("Should NOT arrive here."); */
             break;
     }
 }
@@ -338,7 +336,7 @@ void *IOT_Shadow_Construct(iotx_shadow_para_pt pparams)
     int rc = 0;
     iotx_shadow_pt pshadow = NULL;
 
-    //initialize shadow
+    /* initialize shadow */
     if (NULL == (pshadow = LITE_malloc(sizeof(iotx_shadow_t)))) {
         log_err("Not enough memory");
         return NULL;
@@ -353,7 +351,7 @@ void *IOT_Shadow_Construct(iotx_shadow_para_pt pparams)
     pparams->mqtt.handle_event.h_fp = iotx_ds_event_handle;
     pparams->mqtt.handle_event.pcontext = pshadow;
 
-    //construct MQTT client
+    /* construct MQTT client */
     if (NULL == (pshadow->mqtt = IOT_MQTT_Construct(&pparams->mqtt))) {
         log_err("construct MQTT failed");
         goto do_exit;
@@ -438,7 +436,7 @@ iotx_err_t IOT_Shadow_Destroy(void *handle)
 
 iotx_err_t IOT_Shadow_RegisterAttribute(void *handle, iotx_shadow_attr_pt pattr)
 {
-    //check if already registered
+    /* check if already registered */
     if (iotx_ds_common_check_attr_existence((iotx_shadow_pt)handle, pattr)) {
         return ERROR_SHADOW_ATTR_EXIST;
     }
@@ -451,7 +449,7 @@ iotx_err_t IOT_Shadow_RegisterAttribute(void *handle, iotx_shadow_attr_pt pattr)
 }
 
 
-//Remove attribute from Device Shadow in cloud by delete method.
+/* Remove attribute from Device Shadow in cloud by delete method. */
 iotx_err_t IOT_Shadow_DeleteAttribute(void *handle, iotx_shadow_attr_pt pattr)
 {
 #define SHADOW_DELETE_MSG_SIZE      (256)

@@ -29,11 +29,11 @@
 #include "shadow_config.h"
 
 typedef struct iotx_update_ack_wait_list_st {
-    bool flag_busy; //0, free; 1, busy.
-    char token[IOTX_DS_TOKEN_LEN];
-    iotx_push_cb_fpt callback;
-    void *pcontext;
-    iotx_time_t timer;
+    int                 flag_busy; /* 0, free; 1, busy. */
+    char                token[IOTX_DS_TOKEN_LEN];
+    iotx_push_cb_fpt    callback;
+    void               *pcontext;
+    iotx_time_t         timer;
 } iotx_update_ack_wait_list_t, *iotx_update_ack_wait_list_pt;
 
 
@@ -54,7 +54,6 @@ typedef struct iotx_shadow_st {
     void *mutex;
     iotx_inner_data_t inner_data;
 } iotx_shadow_t, *iotx_shadow_pt;
-
 
 iotx_err_t iotx_ds_common_format_init(iotx_shadow_pt pshadow,
                                       format_data_pt pformat,
@@ -85,7 +84,7 @@ iotx_err_t iotx_ds_common_convert_string2data(
             iotx_shadow_attr_datatype_t type,
             void *pData);
 
-bool iotx_ds_common_check_attr_existence(iotx_shadow_pt pshadow, const iotx_shadow_attr_pt pattr);
+int iotx_ds_common_check_attr_existence(iotx_shadow_pt pshadow, const iotx_shadow_attr_pt pattr);
 
 iotx_err_t iotx_ds_common_register_attr(
             iotx_shadow_pt pshadow,
@@ -97,7 +96,7 @@ iotx_err_t iotx_ds_common_remove_attr(
 
 char *iotx_ds_common_generate_topic_name(iotx_shadow_pt pshadow, const char *topic);
 
-iotx_err_t iotx_ds_common_publish2update(iotx_shadow_pt pshadow, char *data, uint32_t data_len);
+int iotx_ds_common_publish2update(iotx_shadow_pt pshadow, char *data, uint32_t data_len);
 
 void iotx_ds_common_update_version(iotx_shadow_pt pshadow, uint32_t version);
 

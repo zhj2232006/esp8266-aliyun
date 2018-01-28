@@ -15,15 +15,15 @@
  * limitations under the License.
  *
  */
-
-
 #ifndef __LITE_LOG_INTERNAL_H__
 #define __LITE_LOG_INTERNAL_H__
 
+#include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include "lite-log.h"
 
-#define LITE_LOG_ENABLED
+#define LITE_LOG_ENABLED 1
 
 #define LOG_MSG_MAXLEN                  (255)
 #define LOG_MOD_NAME_LEN                (7)
@@ -35,7 +35,7 @@
 
 #if defined(_PLATFORM_IS_LINUX_)
 #undef  LOG_MSG_MAXLEN
-#define LOG_MSG_MAXLEN                  (1023)
+#define LOG_MSG_MAXLEN                  (512)
 #endif
 
 typedef struct {

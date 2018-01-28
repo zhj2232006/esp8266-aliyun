@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#include <stdbool.h>
+#include <stdint.h>
 
 typedef enum _IOT_LogLevel {
     IOT_LOG_EMERG = 0,
@@ -35,24 +35,140 @@ typedef enum _IOT_LogLevel {
     IOT_LOG_DEBUG,
 } IOT_LogLevel;
 
+/* From device.h */
+#define PRODUCT_KEY_LEN     (20)
+#define DEVICE_NAME_LEN     (32)
+#define DEVICE_ID_LEN       (64)
+#define DEVICE_SECRET_LEN   (64)
+
+#define MODULE_VENDOR_ID    (32)    /* Partner ID */
+
+#define HOST_ADDRESS_LEN    (128)
+#define HOST_PORT_LEN       (8)
+#define CLIENT_ID_LEN       (256)
+#define USER_NAME_LEN       (512)   /* Extend length for ID2 */
+#define PASSWORD_LEN        (256)   /* Extend length for ID2 */
+#define AESKEY_STR_LEN      (32)
+#define AESKEY_HEX_LEN      (128/8)
+
+typedef struct {
+    char        product_key[PRODUCT_KEY_LEN + 1];
+    char        device_name[DEVICE_NAME_LEN + 1];
+    char        device_id[DEVICE_ID_LEN + 1];
+    char        device_secret[DEVICE_SECRET_LEN + 1];
+    char        module_vendor_id[MODULE_VENDOR_ID + 1];
+} iotx_device_info_t, *iotx_device_info_pt;
+
+typedef struct {
+    uint16_t        port;
+    char            host_name[HOST_ADDRESS_LEN + 1];
+    char            client_id[CLIENT_ID_LEN + 1];
+    char            username[USER_NAME_LEN + 1];
+    char            password[PASSWORD_LEN + 1];
+    const char     *pub_key;
+#ifdef MQTT_ID2_AUTH
+    char            aeskey_str[AESKEY_STR_LEN];
+    uint8_t         aeskey_hex[AESKEY_HEX_LEN];
+#endif
+} iotx_conn_info_t, *iotx_conn_info_pt;
+/* From device.h */
+
+/** @defgroup group_api api
+ *  @{
+ */
+
+/** @defgroup group_api_log log
+ *  @{
+ */
+
+/**
+ * @brief Began to print log information.
+ *
+ * @param [in] ident: module name.
+ *
+ * @return None.
+ * @see None.
+ */
 void    IOT_OpenLog(const char *ident);
+
+/**
+ * @brief Stop print log information.
+ *
+ * @return None.
+ * @see None.
+ */
 void    IOT_CloseLog(void);
+
+/**
+ * @brief Set the print level.
+ *
+ * @param [in] level: @n level from 1 to 5, the greater the number, the more detailed the printing.
+ *
+ * @return None.
+ * @see None.
+ */
 void    IOT_SetLogLevel(IOT_LogLevel level);
+
+/**
+ * @brief Print the memory usage statistics.
+ *
+ * @param [in] level: @n level from 1 to 5, the greater the number, the more detailed the printing.
+ *
+ * @return None.
+ * @see None.
+ */
 void    IOT_DumpMemoryStats(IOT_LogLevel level);
+
+/** @} */ /* end of api_log */
+
+/** @defgroup group_api_conninfo conninfo
+ *  @{
+ */
+
+
+/**
+ * @brief Based on the 'product_key' + 'device_name' + 'device_secret' produce an MQTT connection username and password.
+ *
+ * @param [in] product_key: @n Apply for 'product_key' in the AliYun Console.
+ * @param [in] device_name: @n Apply for 'device_name' in the AliYun Console.
+ * @param [in] device_secret: @n Apply for 'device_secret' in the AliYun Console.
+ * @param [out] info_ptr: @n return MQTT connection parameter.
+ *
+ * @retval -1 : Fail.
+ * @retval  0 : Success.
+ * @see None.
+ */
 int     IOT_SetupConnInfo(const char *product_key,
                           const char *device_name,
                           const char *device_secret,
                           void **info_ptr);
+/**
+ * @brief Based on the product_key + device_name + device_secret produce an MQTT connection username and password by ID2_AUTH.
+ *
+ * @param [in] product_key: @n Apply for 'product_key' in the AliYun Console.
+ * @param [in] device_name: @n Apply for 'device_name' in the AliYun Console.
+ * @param [in] device_secret: @n Apply for 'device_secret' in the AliYun Console.
+ * @param [out] info_ptr: @n return MQTT connection parameter.
+ *
+ * @retval -1 : Fail.
+ * @retval  0 : Success.
+ * @see None.
+ */
+
+int     IOT_SetupConnInfoSecure(const char *product_key,
+                                const char *device_name,
+                                const char *device_secret,
+                                void **info_ptr);
+/** @} */ /* end of api_conninfo */
+
+/** @} */ /* end of api */
 
 #include "exports/iot_export_errno.h"
 #include "exports/iot_export_mqtt.h"
-#include "exports/iot_export_device.h"
 #include "exports/iot_export_shadow.h"
 #include "exports/iot_export_coap.h"
 #include "exports/iot_export_ota.h"
-
-#define ESP_LOGI(tag,log)    os_printf(log)
-#define ESP_LOGE(tag,log)    os_printf(log)
+#include "exports/iot_export_http.h"
 
 #if defined(__cplusplus)
 }

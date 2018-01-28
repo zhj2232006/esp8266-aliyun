@@ -19,6 +19,8 @@
 
 #include <string.h>
 #include <stddef.h>
+#include <stdlib.h>
+
 #include "iot_import.h"
 #include "utils_timer.h"
 #include "lite-log.h"
@@ -29,7 +31,7 @@
 
 #define HTTPCLIENT_AUTHB_SIZE     128
 
-#define HTTPCLIENT_CHUNK_SIZE     256
+#define HTTPCLIENT_CHUNK_SIZE     1024
 #define HTTPCLIENT_SEND_BUF_SIZE  1024
 
 #define HTTPCLIENT_MAX_HOST_LEN   64
@@ -90,7 +92,7 @@ int httpclient_parse_url(const char *url, char *scheme, uint32_t max_scheme_len,
     char *host_ptr = (char *) strstr(url, "://");
     uint32_t host_len = 0;
     uint32_t path_len;
-    //char *port_ptr;
+    /* char *port_ptr; */
     char *path_ptr;
     char *fragment_ptr;
 
@@ -198,12 +200,12 @@ int httpclient_get_info(httpclient_t *client, char *send_buf, int *send_idx, cha
         len -= cp_len;
 
         if (idx == HTTPCLIENT_SEND_BUF_SIZE) {
-            //            if (client->remote_port == HTTPS_PORT)
-            //            {
-            //                WRITE_IOT_ERROR_LOG("send buffer overflow");
-            //                return ERROR_HTTP;
-            //            }
-            //ret = httpclient_tcp_send_all(client->handle, send_buf, HTTPCLIENT_SEND_BUF_SIZE);
+            /*            if (client->remote_port == HTTPS_PORT) */
+            /*            { */
+            /*                WRITE_IOT_ERROR_LOG("send buffer overflow"); */
+            /*                return ERROR_HTTP; */
+            /*            } */
+            /* ret = httpclient_tcp_send_all(client->handle, send_buf, HTTPCLIENT_SEND_BUF_SIZE); */
             ret = client->net.fp_write(&client->net, send_buf, HTTPCLIENT_SEND_BUF_SIZE, 5000);
             if (ret) {
                 return (ret);
@@ -261,27 +263,27 @@ int httpclient_send_header(httpclient_t *client, const char *url, int method, ht
     int port;
 
     /* First we need to parse the url (http[s]://host[:port][/[path]]) */
-    //int res = httpclient_parse_url(url, scheme, sizeof(scheme), host, sizeof(host), &(client->remote_port), path, sizeof(path));
+    /* int res = httpclient_parse_url(url, scheme, sizeof(scheme), host, sizeof(host), &(client->remote_port), path, sizeof(path)); */
     int res = httpclient_parse_url(url, scheme, sizeof(scheme), host, sizeof(host), &port, path, sizeof(path));
     if (res != SUCCESS_RETURN) {
         log_err("httpclient_parse_url returned %d", res);
         return res;
     }
 
-    //if (client->remote_port == 0)
-    //{
+    /* if (client->remote_port == 0) */
+    /* { */
     if (strcmp(scheme, "http") == 0) {
-        //client->remote_port = HTTP_PORT;
+        /* client->remote_port = HTTP_PORT; */
     } else if (strcmp(scheme, "https") == 0) {
-        //client->remote_port = HTTPS_PORT;
+        /* client->remote_port = HTTPS_PORT; */
     }
-    //}
+    /* } */
 
     /* Send request */
     memset(send_buf, 0, HTTPCLIENT_SEND_BUF_SIZE);
     len = 0; /* Reset send buffer */
 
-    snprintf(buf, sizeof(buf), "%s %s HTTP/1.1\r\nHost: %s\r\n", meth, path, host); /* Write request */
+    HAL_Snprintf(buf, sizeof(buf), "%s %s HTTP/1.1\r\nHost: %s\r\n", meth, path, host); /* Write request */
     ret = httpclient_get_info(client, send_buf, &len, buf, strlen(buf));
     if (ret) {
         log_err("Could not write request");
@@ -299,11 +301,11 @@ int httpclient_send_header(httpclient_t *client, const char *url, int method, ht
     }
 
     if (client_data->post_buf != NULL) {
-        snprintf(buf, sizeof(buf), "Content-Length: %d\r\n", client_data->post_buf_len);
+        HAL_Snprintf(buf, sizeof(buf), "Content-Length: %d\r\n", client_data->post_buf_len);
         httpclient_get_info(client, send_buf, &len, buf, strlen(buf));
 
         if (client_data->post_content_type != NULL) {
-            snprintf(buf, sizeof(buf), "Content-Type: %s\r\n", client_data->post_content_type);
+            HAL_Snprintf(buf, sizeof(buf), "Content-Type: %s\r\n", client_data->post_content_type);
             httpclient_get_info(client, send_buf, &len, buf, strlen(buf));
         }
     }
@@ -313,7 +315,7 @@ int httpclient_send_header(httpclient_t *client, const char *url, int method, ht
 
     log_multi_line(LOG_DEBUG_LEVEL, "REQUEST", "%s", send_buf, ">");
 
-    //ret = httpclient_tcp_send_all(client->net.handle, send_buf, len);
+    /* ret = httpclient_tcp_send_all(client->net.handle, send_buf, len); */
     ret = client->net.fp_write(&client->net, send_buf, len, 5000);
     if (ret > 0) {
         log_debug("Written %d bytes", ret);
@@ -335,7 +337,7 @@ int httpclient_send_userdata(httpclient_t *client, httpclient_data_t *client_dat
     if (client_data->post_buf && client_data->post_buf_len) {
         log_debug("client_data->post_buf: %s", client_data->post_buf);
         {
-            //ret = httpclient_tcp_send_all(client->handle, (char *)client_data->post_buf, client_data->post_buf_len);
+            /* ret = httpclient_tcp_send_all(client->handle, (char *)client_data->post_buf, client_data->post_buf_len); */
             ret = client->net.fp_write(&client->net, (char *)client_data->post_buf, client_data->post_buf_len, 5000);
             if (ret > 0) {
                 log_debug("Written %d bytes", ret);
@@ -364,13 +366,13 @@ int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max_len, i
     *p_read_len = 0;
 
     ret = client->net.fp_read(&client->net, buf, max_len, iotx_time_left(&timer));
-    //log_debug("Recv: | %s", buf);
+    /* log_debug("Recv: | %s", buf); */
 
     if (ret > 0) {
         *p_read_len = ret;
     } else if (ret == 0) {
-        //timeout
-        return 0;
+        /* timeout */
+        return FAIL_RETURN;
     } else if (-1 == ret) {
         log_info("Connection closed.");
         return ERROR_HTTP_CONN;
@@ -381,37 +383,37 @@ int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max_len, i
     log_info("%u bytes has been read", *p_read_len);
     return 0;
 
-    //    while (readLen <= min_len) {
-    //        buf[readLen] = '\0';
-    //        if (readLen < min_len) {
-    //            //wait to read HTTP respond data
-    //            ret = client->net.read(&client->net, buf + readLen, min_len - readLen, utils_timer_remain(&timer));
-    //        } else {
-    //            //read the rest data in TCP buffer (with little wait time)
-    //            ret = client->net.read(&client->net, buf + readLen, max_len - readLen, 100);
-    //        }
-    //
-    //        if (ret > 0) {
-    //            readLen += ret;
-    //        } else if (ret == 0) {
-    //            //timeout
-    //            break;
-    //        } else if (-1 == ret) {
-    //            log_info("Connection closed. %u bytes be read", readLen);
-    //            break;
-    //        } else {
-    //            log_err("Connection error (recv returned %d)", ret);
-    //            return ERROR_HTTP_CONN;
-    //        }
-    //    }
-    //
-    //    log_info("%u bytes be read", readLen);
-    //    *p_read_len = readLen;
-    //    return 0;
+    /*    while (readLen <= min_len) { */
+    /*        buf[readLen] = '\0'; */
+    /*        if (readLen < min_len) { */
+    /*            //wait to read HTTP respond data */
+    /*            ret = client->net.read(&client->net, buf + readLen, min_len - readLen, utils_timer_remain(&timer)); */
+    /*        } else { */
+    /*            //read the rest data in TCP buffer (with little wait time) */
+    /*            ret = client->net.read(&client->net, buf + readLen, max_len - readLen, 100); */
+    /*        } */
+    /* */
+    /*        if (ret > 0) { */
+    /*            readLen += ret; */
+    /*        } else if (ret == 0) { */
+    /*            //timeout */
+    /*            break; */
+    /*        } else if (-1 == ret) { */
+    /*            log_info("Connection closed. %u bytes be read", readLen); */
+    /*            break; */
+    /*        } else { */
+    /*            log_err("Connection error (recv returned %d)", ret); */
+    /*            return ERROR_HTTP_CONN; */
+    /*        } */
+    /*    } */
+    /* */
+    /*    log_info("%u bytes be read", readLen); */
+    /*    *p_read_len = readLen; */
+    /*    return 0; */
 }
 
-int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint32_t timeout_ms,
-                                httpclient_data_t *client_data)
+int httpclient_retrieve_content(httpclient_t *client, char *data, int len,
+                                uint32_t timeout_ms, httpclient_data_t *client_data)
 {
     int count = 0;
     int templen = 0;
@@ -424,10 +426,10 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
     /* Receive data */
     log_debug("Current data: %s", data);
 
-    client_data->is_more = true;
+    client_data->is_more = IOT_TRUE;
 
-    if (client_data->response_content_len == -1 && client_data->is_chunked == false) {
-        while (true) {
+    if (client_data->response_content_len == -1 && client_data->is_chunked == IOT_FALSE) {
+        while (1) {
             int ret, max_len;
             if (count + len < client_data->response_buf_len - 1) {
                 memcpy(client_data->response_buf + count, data, len);
@@ -453,27 +455,27 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
             if (len == 0) {
                 /* read no more data */
                 log_debug("no more len == 0");
-                client_data->is_more = false;
+                client_data->is_more = IOT_FALSE;
                 return SUCCESS_RETURN;
             }
         }
     }
 
-    while (true) {
+    while (1) {
         uint32_t readLen = 0;
 
         if (client_data->is_chunked && client_data->retrieve_len <= 0) {
             /* Read chunk header */
-            bool foundCrlf;
+            int foundCrlf;
             int n;
             do {
-                foundCrlf = false;
+                foundCrlf = IOT_FALSE;
                 crlf_pos = 0;
                 data[len] = 0;
                 if (len >= 2) {
                     for (; crlf_pos < len - 2; crlf_pos++) {
                         if (data[crlf_pos] == '\r' && data[crlf_pos + 1] == '\n') {
-                            foundCrlf = true;
+                            foundCrlf = IOT_TRUE;
                             break;
                         }
                     }
@@ -500,9 +502,20 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
                 }
             } while (!foundCrlf);
             data[crlf_pos] = '\0';
-            n = sscanf(data, "%x", &readLen);/* chunk length */
+
+            /* chunk length */
+            /* n = sscanf(data, "%x", &readLen); */
+
+            readLen = strtoul(data, NULL, 16);
+            n = (0 == readLen) ? 0 : 1;
             client_data->retrieve_len = readLen;
             client_data->response_content_len += client_data->retrieve_len;
+            if (readLen == 0) {
+                /* Last chunk */
+                client_data->is_more = IOT_FALSE;
+                log_debug("no more (last chunk)");
+            }
+
             if (n != 1) {
                 log_err("Could not read chunk length");
                 return ERROR_HTTP_UNRESOLVED_DNS;
@@ -510,13 +523,6 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
 
             memmove(data, &data[crlf_pos + 2], len - (crlf_pos + 2)); /* Not need to move NULL-terminating char any more */
             len -= (crlf_pos + 2);
-
-            if (readLen == 0) {
-                /* Last chunk */
-                client_data->is_more = false;
-                log_debug("no more (last chunk)");
-                break;
-            }
         } else {
             readLen = client_data->retrieve_len;
         }
@@ -577,7 +583,7 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
             len -= 2;
         } else {
             log_debug("no more (content-length)");
-            client_data->is_more = false;
+            client_data->is_more = IOT_FALSE;
             break;
         }
 
@@ -591,6 +597,7 @@ int httpclient_response_parse(httpclient_t *client, char *data, int len, uint32_
 {
     int crlf_pos;
     iotx_time_t timer;
+    char *tmp_ptr, *ptr_body_end;
 
     iotx_time_init(&timer);
     utils_time_countdown_ms(&timer, timeout_ms);
@@ -607,103 +614,83 @@ int httpclient_response_parse(httpclient_t *client, char *data, int len, uint32_
     data[crlf_pos] = '\0';
 
     /* Parse HTTP response */
+#if 0
     if (sscanf(data, "HTTP/%*d.%*d %d %*[^\r\n]", &(client->response_code)) != 1) {
         /* Cannot match string, error */
         log_err("Not a correct HTTP answer : %s\n", data);
         return ERROR_HTTP_UNRESOLVED_DNS;
     }
+#endif
+
+    client->response_code = atoi(data + 9);
 
     if ((client->response_code < 200) || (client->response_code >= 400)) {
         /* Did not return a 2xx code; TODO fetch headers/(&data?) anyway and implement a mean of writing/reading headers */
         log_warning("Response code %d", client->response_code);
     }
 
-    log_debug("Reading headers%s", data);
+    log_debug("Reading headers: %s", data);
 
     memmove(data, &data[crlf_pos + 2], len - (crlf_pos + 2) + 1); /* Be sure to move NULL-terminating char as well */
     len -= (crlf_pos + 2);
 
-    client_data->is_chunked = false;
+    client_data->is_chunked = IOT_FALSE;
 
-    /* Now get headers */
-    while (true) {
-        char key[32];
-        char value[32];
-        int n;
-
-        key[31] = '\0';
-        value[31] = '\0';
-
-        crlf_ptr = strstr(data, "\r\n");
-        if (crlf_ptr == NULL) {
-            if (len < HTTPCLIENT_CHUNK_SIZE - 1) {
-                int new_trf_len, ret;
-                ret = httpclient_recv(client, data + len, 1, HTTPCLIENT_CHUNK_SIZE - len - 1, &new_trf_len, iotx_time_left(&timer));
-                len += new_trf_len;
-                data[len] = '\0';
-                log_debug("Read %d chars; In buf: [%s]", new_trf_len, data);
-                if (ret == ERROR_HTTP_CONN) {
-                    return ret;
-                } else {
-                    continue;
-                }
-            } else {
-                log_debug("header len > chunksize");
-                return ERROR_HTTP;
-            }
+    /*If not ending of response body, try to get more data again */
+    if (NULL == (ptr_body_end = strstr(data, "\r\n\r\n"))) {
+        int new_trf_len, ret;
+        ret = httpclient_recv(client, data + len, 1, HTTPCLIENT_CHUNK_SIZE - len - 1, &new_trf_len, iotx_time_left(&timer));
+        if (ret == ERROR_HTTP_CONN) {
+            return ret;
         }
-
-        crlf_pos = crlf_ptr - data;
-        if (crlf_pos == 0) {
-            /* End of headers */
-            memmove(data, &data[2], len - 2 + 1); /* Be sure to move NULL-terminating char as well */
-            len -= 2;
-            break;
-        }
-
-        data[crlf_pos] = '\0';
-
-        n = sscanf(data, "%31[^:]: %31[^\r\n]", key, value);
-        if (n == 2) {
-            log_debug("Read header : %s: %s", key, value);
-            if (!strcmp(key, "Content-Length")) {
-                sscanf(value, "%d", &(client_data->response_content_len));
-                client_data->retrieve_len = client_data->response_content_len;
-            } else if (!strcmp(key, "Transfer-Encoding")) {
-                if (!strcmp(value, "Chunked") || !strcmp(value, "chunked")) {
-                    client_data->is_chunked = true;
-                    client_data->response_content_len = 0;
-                    client_data->retrieve_len = 0;
-                }
-            }
-            memmove(data, &data[crlf_pos + 2], len - (crlf_pos + 2) + 1); /* Be sure to move NULL-terminating char as well */
-            len -= (crlf_pos + 2);
-
-        } else {
-            log_err("Could not parse header");
-            return ERROR_HTTP;
+        len += new_trf_len;
+        data[len] = '\0';
+        if (NULL == (ptr_body_end = strstr(data, "\r\n\r\n"))) {
+            log_err("parse error: no end of the request body");
+            return -1;
         }
     }
 
+    if (NULL != (tmp_ptr = strstr(data, "Content-Length"))) {
+        client_data->response_content_len = atoi(tmp_ptr + strlen("Content-Length: "));
+        client_data->retrieve_len = client_data->response_content_len;
+    } else if (NULL != (tmp_ptr = strstr(data, "Transfer-Encoding"))) {
+        int len_chunk = strlen("Chunked");
+        char *chunk_value = data + strlen("Transfer-Encoding: ");
+
+        if ((! memcmp(chunk_value, "Chunked", len_chunk))
+            || (! memcmp(chunk_value, "chunked", len_chunk))) {
+            client_data->is_chunked = IOT_TRUE;
+            client_data->response_content_len = 0;
+            client_data->retrieve_len = 0;
+        }
+    } else {
+        log_err("Could not parse header");
+        return ERROR_HTTP;
+    }
+
+    len = len - (ptr_body_end + 4 - data);
+    memmove(data, ptr_body_end + 4, len + 1);
     return httpclient_retrieve_content(client, data, len, iotx_time_left(&timer), client_data);
 }
 
-iotx_err_t httpclient_connect(httpclient_t *client)
+int httpclient_connect(httpclient_t *client)
 {
     int ret = ERROR_HTTP_CONN;
 
     client->net.handle = 0;
 
     ret = httpclient_conn(client);
-    //    if (0 == ret)
-    //    {
-    //        client->remote_port = HTTP_PORT;
-    //    }
+    /*    if (0 == ret) */
+    /*    { */
+    /*        client->remote_port = HTTP_PORT; */
+    /*    } */
 
     return ret;
 }
 
-iotx_err_t httpclient_send_request(httpclient_t *client, const char *url, int method, httpclient_data_t *client_data)
+int httpclient_send_request(httpclient_t *client, const char *url, HTTPCLIENT_REQUEST_TYPE method,
+                            httpclient_data_t *client_data)
 {
     int ret = ERROR_HTTP_CONN;
 
@@ -725,7 +712,7 @@ iotx_err_t httpclient_send_request(httpclient_t *client, const char *url, int me
     return ret;
 }
 
-iotx_err_t httpclient_recv_response(httpclient_t *client, uint32_t timeout_ms, httpclient_data_t *client_data)
+int httpclient_recv_response(httpclient_t *client, uint32_t timeout_ms, httpclient_data_t *client_data)
 {
     int reclen = 0, ret = ERROR_HTTP_CONN;
     char buf[HTTPCLIENT_CHUNK_SIZE] = { 0 };
@@ -766,44 +753,46 @@ void httpclient_close(httpclient_t *client)
         client->net.fp_disconnect(&client->net);
     }
     client->net.handle = 0;
+    log_debug("client disconnected");
 }
 
-int httpclient_common(httpclient_t *client, const char *url, int port, const char *ca_crt, int method,
-                      uint32_t timeout_ms,
-                      httpclient_data_t *client_data)
+int httpclient_common(httpclient_t *client, const char *url, int port, const char *ca_crt,
+                      HTTPCLIENT_REQUEST_TYPE method, uint32_t timeout_ms, httpclient_data_t *client_data)
 {
     iotx_time_t timer;
     int ret = 0;
     char host[HTTPCLIENT_MAX_HOST_LEN] = { 0 };
 
+    httpclient_parse_host(url, host, sizeof(host));
+    log_debug("host: '%s', port: %d", host, port);
 
     if (0 == client->net.handle) {
-        //Establish connection if no.
-    	httpclient_parse_host(url, host, sizeof(host));
-    	log_debug("host: '%s', port: %d", host, port);
-
-    	iotx_net_init(&client->net, host, port, ca_crt);
-
-    	ret = httpclient_connect(client);
-    	if (0 != ret) {
-            log_err("httpclient_connect is error,ret = %d", ret);
-            httpclient_close(client);
-            return ret;
-    	}
-
-        ret = httpclient_send_request(client, url, method, client_data);
+        /* Establish connection if no. */
+        ret = iotx_net_init(&client->net, host, port, ca_crt);
         if (0 != ret) {
-            log_err("httpclient_send_request is error,ret = %d", ret);
+            return ret;
+        }
+
+        ret = httpclient_connect(client);
+        if (0 != ret) {
+            log_err("httpclient_connect is error, ret = %d", ret);
             httpclient_close(client);
             return ret;
         }
     }
 
+    ret = httpclient_send_request(client, url, method, client_data);
+    if (0 != ret) {
+        log_err("httpclient_send_request is error, ret = %d", ret);
+        httpclient_close(client);
+        return ret;
+    }
+
     iotx_time_init(&timer);
     utils_time_countdown_ms(&timer, timeout_ms);
 
-     if ((NULL != client_data->response_buf)
-         || (0 != client_data->response_buf_len)) {
+    if ((NULL != client_data->response_buf)
+        && (0 != client_data->response_buf_len)) {
         ret = httpclient_recv_response(client, iotx_time_left(&timer), client_data);
         if (ret < 0) {
             log_err("httpclient_recv_response is error,ret = %d", ret);
@@ -812,12 +801,7 @@ int httpclient_common(httpclient_t *client, const char *url, int port, const cha
         }
     }
 
-    if (! client_data->is_more) {
-        //Close the HTTP if no more data.
-        log_info("close http channel");
-        httpclient_close(client);
-    }
-    return (ret >= 0) ? 0 : -1;
+    return 0;
 }
 
 int utils_get_response_code(httpclient_t *client)
@@ -825,14 +809,41 @@ int utils_get_response_code(httpclient_t *client)
     return client->response_code;
 }
 
-iotx_err_t iotx_post(
-            httpclient_t *client,
-            const char *url,
-            int port,
-            const char *ca_crt,
-            uint32_t timeout_ms,
-            httpclient_data_t *client_data)
+int iotx_post(httpclient_t *client,
+              const char *url,
+              int port,
+              const char *ca_crt,
+              httpclient_data_t *client_data)
 {
-    return httpclient_common(client, url, port, ca_crt, HTTPCLIENT_POST, timeout_ms, client_data);
+    /* return httpclient_common(client, url, port, ca_crt, HTTPCLIENT_POST, timeout_ms, client_data); */
+    int ret = ERROR_HTTP;
+    char host[HTTPCLIENT_MAX_HOST_LEN] = { 0 };
+
+    httpclient_parse_host(url, host, sizeof(host));
+    log_debug("host: '%s', port: %d", host, port);
+
+    if (0 == client->net.handle) {
+        /* Establish connection if no. */
+        ret = iotx_net_init(&client->net, host, port, ca_crt);
+        if (0 != ret) {
+            return ret;
+        }
+
+        ret = httpclient_connect(client);
+        if (0 != ret) {
+            log_err("httpclient_connect is error, ret = %d", ret);
+            httpclient_close(client);
+            return ret;
+        }
+    }
+
+    ret = httpclient_send_request(client, url, HTTPCLIENT_POST, client_data);
+    if (0 != ret) {
+        log_err("httpclient_send_request is error, ret = %d", ret);
+        httpclient_close(client);
+        return ret;
+    }
+
+    return ret;
 }
 

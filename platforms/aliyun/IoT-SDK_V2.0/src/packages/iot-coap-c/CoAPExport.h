@@ -22,7 +22,7 @@
 #ifndef __COAP_EXPORT_H__
 #define __COAP_EXPORT_H__
 
-//#define COAP_DTLS_SUPPORT
+/* #define COAP_DTLS_SUPPORT */
 
 
 #define COAP_MSG_MAX_TOKEN_LEN    12
@@ -69,42 +69,20 @@
 
 /* CoAP module error code base */
 #define COAP_ERROR_BASE            (1<<8)
-#define COAP_ERROR_MSG_BASE        (1<<16)
-#define COAP_ERROR_DTLS_BASE       (1<<24)
+#define COAP_ERROR_DTLS_BASE       (1<<16)
 
 /* CoAP base error code */
-#define COAP_SUCCESS                           (0)                    /*  Successful */
-#define COAP_ERROR_INTERNAL                    (COAP_ERROR_BASE | 1)  /*  Internal Error */
-#define COAP_ERROR_INVALID_PARAM               (COAP_ERROR_BASE | 2)  /*  Invalid Parameter */
-#define COAP_ERROR_INVALID_LENGTH              (COAP_ERROR_BASE | 3)  /*  Invalid Length */
-#define COAP_ERROR_INVALID_DATA                (COAP_ERROR_BASE | 4)  /*  Invalid Data */
-#define COAP_ERROR_DATA_SIZE                   (COAP_ERROR_BASE | 5)  /*  Data size exceeds limit */
-#define COAP_ERROR_NULL                        (COAP_ERROR_BASE | 6)  /*  Null Pointer */
-#define COAP_ERROR_INVALID_URI                 (COAP_ERROR_BASE | 7)
-#define COAP_ERROR_DNS_FAILED                  (COAP_ERROR_BASE | 8)
-#define COAP_ERROR_NOT_FOUND                   (COAP_ERROR_BASE | 9)
-
-/* CoAP Message and Transmission error code*/
-#define COAP_MESSAGE_ERROR_NULL            (COAP_ERROR_MSG_BASE | 0)
-#define COAP_MESSAGE_ERROR_INVALID_CONF    (COAP_ERROR_MSG_BASE | 1)
-#define COAP_MESSAGE_INVALID_CONTENT       (COAP_ERROR_MSG_BASE | 2)
-#define COAP_TRANSMISSION_RESET_BY_PEER    (COAP_ERROR_MSG_BASE | 3)
-#define COAP_TRANSMISSION_TIMEOUT          (COAP_ERROR_MSG_BASE | 4)
-#define COAP_TRANSPORT_SECURITY_MISSING    (COAP_ERROR_MSG_BASE | 5)
-
-
-/* CoAP DTLS error code */
-#define COAP_DTLS_NEW_SESSION_REQ           (COAP_ERROR_DTLS_BASE | 0)
-#define COAP_DTLS_CONFIGURATION_FAILED      (COAP_ERROR_DTLS_BASE | 1)
-#define COAP_DTLS_CONTEXT_SETUP_FAILED      (COAP_ERROR_DTLS_BASE | 2)
-#define COAP_DTLS_HANDSHAKE_IN_PROGRESS     (COAP_ERROR_DTLS_BASE | 3)
-#define COAP_DTLS_READ_DATA_FAILED          (COAP_ERROR_DTLS_BASE | 4)
-#define COAP_DTLS_INVALID_CA_CERTIFICATE    (COAP_ERROR_DTLS_BASE | 5)
-#define COAP_DTLS_OWN_CERT_SETUP_FAILED     (COAP_ERROR_DTLS_BASE | 6)
-#define COAP_DTLS_FATAL_ALERT_MESSAGE       (COAP_ERROR_DTLS_BASE | 7)
-#define COAP_DTLS_PEER_CLOSE_NOTIFY         (COAP_ERROR_DTLS_BASE | 8)
-#define COAP_DTLS_HANDSHAKE_FAILED          (COAP_ERROR_DTLS_BASE | 9)
-
+#define COAP_SUCCESS                           (0)                    /* Successful */
+#define COAP_ERROR_INVALID_PARAM               (COAP_ERROR_BASE | 1)  /* Invalid Parameter */
+#define COAP_ERROR_NULL                        (COAP_ERROR_BASE | 2)  /* Null Pointer */
+#define COAP_ERROR_INVALID_LENGTH              (COAP_ERROR_BASE | 3)  /* Invalid Length */
+#define COAP_ERROR_DATA_SIZE                   (COAP_ERROR_BASE | 4)  /* Data size exceeds limit */
+#define COAP_ERROR_INVALID_URI                 (COAP_ERROR_BASE | 5)
+#define COAP_ERROR_NOT_FOUND                   (COAP_ERROR_BASE | 6)
+#define COAP_ERROR_NET_INIT_FAILED             (COAP_ERROR_BASE | 7)
+#define COAP_ERROR_INTERNAL                    (COAP_ERROR_BASE | 8)  /* Internal Error */
+#define COAP_ERROR_WRITE_FAILED                (COAP_ERROR_BASE | 9)
+#define COAP_ERROR_READ_FAILED                 (COAP_ERROR_BASE | 10)
 
 #define COAP_MSG_CODE_DEF(N) (((N)/100 << 5) | (N)%100)
 
@@ -212,8 +190,10 @@ typedef struct
 
 typedef struct
 {
-             char *url;
-    unsigned char  maxcount;  /*list maximal count*/
+             char       *url;
+    unsigned char        maxcount;  /*list maximal count*/
+    unsigned int         waittime;
+    CoAPEventNotifier    notifier;
 }CoAPInitParam;
 
 typedef struct
@@ -224,19 +204,14 @@ typedef struct
     unsigned char            *sendbuf;
     unsigned char            *recvbuf;
     CoAPSendList             list;
+    unsigned int             waittime;
 }CoAPContext;
 
-#define coap_log_print(level, ...) \
-    {\
-    fprintf(stderr, "%s [%s #%d]   ",level, __FILE__, __LINE__); \
-    fprintf(stderr, __VA_ARGS__);\
-    }
-
-#define COAP_TRC(fmt,  args...)  coap_log_print("<TRACE>", fmt, ##args)
-#define COAP_DUMP(fmt, args...)  coap_log_print("<DUMP> ", fmt, ##args)
-#define COAP_DEBUG(fmt,args...)  coap_log_print("<DEBUG>", fmt, ##args)
-#define COAP_INFO(fmt, args...)  coap_log_print("<INFO> ", fmt, ##args)
-#define COAP_ERR(fmt,  args...)  coap_log_print("<ERROR>", fmt, ##args)
+#define COAP_TRC     log_debug
+#define COAP_DUMP    log_debug
+#define COAP_DEBUG   log_debug
+#define COAP_INFO    log_info
+#define COAP_ERR     log_err
 
 CoAPContext *CoAPContext_create(CoAPInitParam *param);
 void CoAPContext_free(CoAPContext *p_ctx);

@@ -20,109 +20,101 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-
+#include "ctype.h"
+#include "iot_import.h"
 
 #include "CoAPNetwork.h"
 #include "CoAPExport.h"
 
-#define COAP_DEFAULT_PORT        5683 /* CoAP default UDP port */
-#define COAPS_DEFAULT_PORT       5684 /* CoAP default UDP port for secure transmission */
+#define COAP_DEFAULT_PORT           5683 /* CoAP default UDP port */
+#define COAPS_DEFAULT_PORT          5684 /* CoAP default UDP port for secure transmission */
 
-#define COAP_DEFAULT_SCHEME      "coap" /* the default scheme for CoAP URIs */
-#define COAP_DEFAULT_HOST_LEN    128
+#define COAP_DEFAULT_SCHEME         "coap" /* the default scheme for CoAP URIs */
+#define COAP_DEFAULT_HOST_LEN       128
+#define COAP_DEFAULT_WAIT_TIME_MS   2000
 
-unsigned int CoAPUri_parse(char *p_uri, coap_address_t *p_addr,
-            coap_endpoint_type *p_endpoint_type, char host[COAP_DEFAULT_HOST_LEN])
+unsigned int CoAPUri_parse(char *p_uri, coap_endpoint_type *p_endpoint_type,
+                           char host[COAP_DEFAULT_HOST_LEN], unsigned short *port)
 {
-    int ret = -1;
     int len = 0;
     char *p = NULL, *q = NULL;
-    if(NULL == p_uri || NULL == p_addr || NULL == p_endpoint_type){
+    if (NULL == p_uri  || NULL == p_endpoint_type) {
         return COAP_ERROR_INVALID_PARAM;
     }
 
     len = strlen(p_uri);
     p = p_uri;
     q = (char *)COAP_DEFAULT_SCHEME;
-    while(len && *q && tolower(*p)==*q){
+    while (len && *q && tolower(*p) == *q) {
         ++p;
         ++q;
         --len;
     }
 
-    if(*q){
+    if (*q) {
         return COAP_ERROR_INVALID_URI;
     }
-    if(tolower(*p) == 's'){
+    if (tolower(*p) == 's') {
         ++p;
         --len;
         *p_endpoint_type = COAP_ENDPOINT_DTLS;
-        p_addr->port     = COAPS_DEFAULT_PORT;
-    }
-    else{
+        *port     = COAPS_DEFAULT_PORT;
+    } else {
         *p_endpoint_type = COAP_ENDPOINT_NOSEC;
-        p_addr->port     = COAP_DEFAULT_PORT;
+        *port     = COAP_DEFAULT_PORT;
     }
-    COAP_DEBUG("The endpoint type is: %d\r\n", *p_endpoint_type);
+    COAP_DEBUG("The endpoint type is: %d", *p_endpoint_type);
 
     q = (char *)"://";
-    while(len && *q && tolower(*p)==*q){
+    while (len && *q && tolower(*p) == *q) {
         ++p;
         ++q;
         --len;
     }
 
-    if(*q){
+    if (*q) {
         return COAP_ERROR_INVALID_URI;
     }
 
     q = p;
-    while(len && *q != ':'){
+    while (len && *q != ':') {
         ++q;
         --len;
     }
-    if(p == q){
+    if (p == q) {
         return COAP_ERROR_INVALID_URI;
     }
 
-    if(COAP_DEFAULT_HOST_LEN-1 < (q-p)){
+    if (COAP_DEFAULT_HOST_LEN - 1 < (q - p)) {
         return COAP_ERROR_INVALID_URI;
-    }
-    else{
+    } else {
         memset(host, 0x00, COAP_DEFAULT_HOST_LEN);
-        strncpy(host , p, q - p);
+        strncpy(host, p, q - p);
     }
-    COAP_DEBUG("The host name is: %s\r\n", host);
-    ret = HAL_UDP_resolveAddress(host, p_addr->addr);
-    if(0 != ret){
-        return COAP_ERROR_DNS_FAILED;
-    }
-    COAP_DEBUG("The address is: %s\r\n", p_addr->addr);
-
-    if(len && *q == ':'){
+    COAP_DEBUG("The host name is: %s", host);
+    if (len && *q == ':') {
         p = ++q;
         --len;
 
-        while (len && isdigit (*q)){
+        while (len && isdigit(*q)) {
             ++q;
             --len;
         }
 
-        if (p < q){
+        if (p < q) {
             int uri_port = 0;
 
-            while (p < q){
+            while (p < q) {
                 uri_port = uri_port * 10 + (*p++ - '0');
             }
 
-            if(uri_port > 65535){
+            if (uri_port > 65535) {
                 return COAP_ERROR_INVALID_URI;
             }
-            p_addr->port = uri_port;
+            *port = uri_port;
         }
     }
-    COAP_DEBUG("The port is: %d\r\n", p_addr->port);
+    COAP_DEBUG("The port is: %d", *port);
 
     return COAP_SUCCESS;
 }
@@ -137,15 +129,31 @@ CoAPContext *CoAPContext_create(CoAPInitParam *param)
 
     memset(&network_param, 0x00, sizeof(coap_network_init_t));
     p_ctx = coap_malloc(sizeof(CoAPContext));
-    if(NULL == p_ctx){
-        COAP_ERR("Create coap new context failed\r\n");
-        return NULL;
+    if (NULL == p_ctx) {
+        COAP_ERR("malloc for coap context failed");
+        goto err;
     }
 
+    memset(p_ctx, 0, sizeof(CoAPContext));
     p_ctx->message_id = 1;
-    p_ctx->notifier = NULL;
+    p_ctx->notifier = param->notifier;
     p_ctx->sendbuf = coap_malloc(COAP_MSG_MAX_PDU_LEN);
+    if (NULL == p_ctx->sendbuf) {
+        COAP_ERR("not enough memory");
+        goto err;
+    }
+
     p_ctx->recvbuf = coap_malloc(COAP_MSG_MAX_PDU_LEN);
+    if (NULL == p_ctx->recvbuf) {
+        COAP_ERR("not enough memory");
+        goto err;
+    }
+
+    if (0 == param->waittime) {
+        p_ctx->waittime = COAP_DEFAULT_WAIT_TIME_MS;
+    } else {
+        p_ctx->waittime = param->waittime;
+    }
 
     /*CoAP message send list*/
     INIT_LIST_HEAD(&p_ctx->list.sendlist);
@@ -153,72 +161,67 @@ CoAPContext *CoAPContext_create(CoAPInitParam *param)
     p_ctx->list.maxcount = param->maxcount;
 
     /*set the endpoint type by uri schema*/
-    if(NULL != param->url){
-        ret = CoAPUri_parse(param->url, &network_param.remote, &network_param.ep_type, host);
+    if (NULL != param->url) {
+        ret = CoAPUri_parse(param->url, &network_param.ep_type, host, &network_param.port);
     }
 
-    if(COAP_SUCCESS != ret){
-        if(NULL != p_ctx){
-            if(NULL != p_ctx->recvbuf){
-                coap_free(p_ctx->recvbuf);
-                p_ctx->recvbuf = NULL;
-            }
-            if(NULL != p_ctx->sendbuf){
-                coap_free(p_ctx->sendbuf);
-                p_ctx->sendbuf = NULL;
-            }
-            coap_free(p_ctx);
-            p_ctx    =  NULL;
-            return NULL;
-        }
+    if (COAP_SUCCESS != ret) {
+        goto err;
     }
 
 #ifdef COAP_DTLS_SUPPORT
-    if(COAP_ENDPOINT_DTLS == network_param.ep_type){
+    if (COAP_ENDPOINT_DTLS == network_param.ep_type) {
         extern const char *iotx_coap_get_ca(void);
-        network_param.p_ca_cert_pem     =  (unsigned char *)iotx_coap_get_ca();
-        network_param.ep_type           =   COAP_ENDPOINT_DTLS;
-        network_param.p_host            =   host;
+        network_param.p_ca_cert_pem  = (unsigned char *)iotx_coap_get_ca();
     }
 #endif
-
-    if(COAP_ENDPOINT_NOSEC == network_param.ep_type){
-        network_param.ep_type = COAP_ENDPOINT_NOSEC;
+    if (COAP_ENDPOINT_NOSEC == network_param.ep_type) {
         network_param.p_ca_cert_pem = NULL;
     }
+    network_param.p_host = host;
 
     /*CoAP network init*/
-    ret = CoAPNetwork_init(&network_param,  &p_ctx->network);
+    ret = CoAPNetwork_init(&network_param, &p_ctx->network);
 
-    if(COAP_SUCCESS != ret){
-        if(NULL != p_ctx){
-
-            if(NULL != p_ctx->recvbuf){
-                coap_free(p_ctx->recvbuf);
-                p_ctx->recvbuf = NULL;
-            }
-            if(NULL != p_ctx->sendbuf){
-                coap_free(p_ctx->sendbuf);
-                p_ctx->sendbuf = NULL;
-            }
-            coap_free(p_ctx);
-            p_ctx    =  NULL;
-        }
+    if (COAP_SUCCESS != ret) {
+        goto err;
     }
+
+    return p_ctx;
+err:
+    if (NULL == p_ctx) {
+        return p_ctx;
+    }
+
+    if (NULL != p_ctx->recvbuf) {
+        coap_free(p_ctx->recvbuf);
+        p_ctx->recvbuf = NULL;
+    }
+
+    if (NULL != p_ctx->sendbuf) {
+        coap_free(p_ctx->sendbuf);
+        p_ctx->sendbuf = NULL;
+    }
+
+    coap_free(p_ctx);
+    p_ctx = NULL;
 
     return p_ctx;
 }
 
-
 void CoAPContext_free(CoAPContext *p_ctx)
 {
+    if (NULL == p_ctx) {
+        return;
+    }
+
     CoAPSendNode *cur, *next;
 
     CoAPNetwork_deinit(&p_ctx->network);
 
-    list_for_each_entry_safe(cur, next, &p_ctx->list.sendlist, sendlist){
-        if(NULL != cur){
-            if(NULL != cur->message){
+    list_for_each_entry_safe(cur, next, &p_ctx->list.sendlist, sendlist, CoAPSendNode) {
+        if (NULL != cur) {
+            if (NULL != cur->message) {
                 coap_free(cur->message);
                 cur->message = NULL;
             }
@@ -227,18 +230,18 @@ void CoAPContext_free(CoAPContext *p_ctx)
         }
     }
 
-    if(NULL != p_ctx->recvbuf){
+    if (NULL != p_ctx->recvbuf) {
         coap_free(p_ctx->recvbuf);
         p_ctx->recvbuf = NULL;
     }
 
-    if(NULL != p_ctx->sendbuf){
+    if (NULL != p_ctx->sendbuf) {
         coap_free(p_ctx->sendbuf);
         p_ctx->sendbuf = NULL;
     }
 
 
-    if(NULL != p_ctx){
+    if (NULL != p_ctx) {
         coap_free(p_ctx);
         p_ctx    =  NULL;
     }

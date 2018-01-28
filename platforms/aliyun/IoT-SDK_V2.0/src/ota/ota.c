@@ -16,7 +16,7 @@
  *
  */
 
-
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "iot_import_ota.h"
@@ -26,45 +26,41 @@
 
 #include "ota_lib.c"
 
-#if (OTA_CH_SIGNAL_MQTT) != 0
-#include "ota_mqtt.c"
-#elif (OTA_CH_SIGNAL_MQTT) != 0
-#include "ota_coap.c"
+#if (OTA_SIGNAL_CHANNEL) == 1
+    #include "ota_mqtt.c"
+#elif (OTA_SIGNAL_CHANNEL) == 2
+    #include "ota_coap.c"
 #else
-#error "NOT support yet!"
+    #error "NOT support yet!"
 #endif
 
-#if (OTA_CH_FETCH_HTTP) != 0
 #include "ota_fetch.c"
-#else
-#error "NOT support yet!"
-#endif
 
 typedef struct  {
-    const char *product_key;    //point to product key
-    const char *device_name;    //point to device name
+    const char *product_key;    /* point to product key */
+    const char *device_name;    /* point to device name */
 
-    uint32_t id;                //message id
-    IOT_OTA_State_t state;          //OTA state
-    uint32_t size_last_fetched; //size of last downloaded
-    uint32_t size_fetched;      //size of already downloaded
-    uint32_t size_file;         //size of file
-    char *purl;                 //point to URL
-    char *version;              //point to string
-    char md5sum[33];            //MD5 string
+    uint32_t id;                /* message id */
+    IOT_OTA_State_t state;      /* OTA state */
+    uint32_t size_last_fetched; /* size of last downloaded */
+    uint32_t size_fetched;      /* size of already downloaded */
+    uint32_t size_file;         /* size of file */
+    char *purl;                 /* point to URL */
+    char *version;              /* point to string */
+    char md5sum[33];            /* MD5 string */
 
-    void *md5;                  //MD5 handle
-    void *ch_signal;            //channel handle of signal exchanged with OTA server
-    void *ch_fetch;             //channel handle of download
+    void *md5;                  /* MD5 handle */
+    void *ch_signal;            /* channel handle of signal exchanged with OTA server */
+    void *ch_fetch;             /* channel handle of download */
 
-    IOT_OTA_Err_t err;              //last error code
+    int err;                    /* last error code */
 
 } OTA_Struct_t, *OTA_Struct_pt;
 
 
-//check whether the progress state is valid or not
-//return: true, valid progress state; false, invalid progress state.
-static bool ota_check_progress(IOT_OTA_Progress_t progress)
+/* check whether the progress state is valid or not */
+/* return: true, valid progress state; false, invalid progress state. */
+static int ota_check_progress(IOT_OTA_Progress_t progress)
 {
     return ((progress >= IOT_OTAP_BURN_FAILED)
             && (progress <= IOT_OTAP_FETCH_PERCENTAGE_MAX));
@@ -78,19 +74,24 @@ static void ota_callback(void *pcontext, const char *msg, uint32_t msg_len)
 
     OTA_Struct_pt h_ota = (OTA_Struct_pt) pcontext;
 
+    if (h_ota->state >= IOT_OTAS_FETCHING) {
+        OTA_LOG_INFO("In downloading or downloaded state");
+        return;
+    }
+
     pvalue = otalib_JsonValueOf(msg, msg_len, "message", &val_len);
     if (NULL == pvalue) {
         OTA_LOG_ERROR("invalid json doc of OTA ");
         return;
     }
 
-    //check whether is positive message
+    /* check whether is positive message */
     if (!((strlen("success") == val_len) && (0 == strncmp(pvalue, "success", val_len)))) {
         OTA_LOG_ERROR("fail state of json doc of OTA");
         return ;
     }
 
-    //get value of 'data' key
+    /* get value of 'data' key */
     pvalue = otalib_JsonValueOf(msg, msg_len, "data", &val_len);
     if (NULL == pvalue) {
         OTA_LOG_ERROR("Not 'data' key in json doc of OTA");
@@ -111,7 +112,7 @@ static void ota_callback(void *pcontext, const char *msg, uint32_t msg_len)
 }
 
 
-//Initialize OTA module
+/* Initialize OTA module */
 void *IOT_OTA_Init(const char *product_key, const char *device_name, void *ch_signal)
 {
     OTA_Struct_pt h_ota = NULL;
@@ -150,7 +151,7 @@ do_exit:
     if (NULL != h_ota->ch_signal) {
         osc_Deinit(h_ota->ch_signal);
     }
-    
+
     if (NULL != h_ota->md5) {
         otalib_MD5Deinit(h_ota->md5);
     }
@@ -165,7 +166,7 @@ do_exit:
 }
 
 
-//deinitialize OTA module
+/* deinitialize OTA module */
 int IOT_OTA_Deinit(void *handle)
 {
     OTA_Struct_pt h_ota = (OTA_Struct_pt) handle;
@@ -228,7 +229,7 @@ int IOT_OTA_ReportVersion(void *handle, const char *version)
     }
 
     if (NULL == (msg_informed = OTA_MALLOC(MSG_INFORM_LEN))) {
-        OTA_LOG_ERROR("malloc failed");
+        OTA_LOG_ERROR("allocate for msg_informed failed");
         h_ota->err = IOT_OTAE_NOMEM;
         return -1;
     }
@@ -243,7 +244,7 @@ int IOT_OTA_ReportVersion(void *handle, const char *version)
 
     ret = osc_ReportVersion(h_ota->ch_signal, msg_informed);
     if (0 != ret) {
-        OTA_LOG_ERROR("Report progress failed");
+        OTA_LOG_ERROR("Report version failed");
         h_ota->err = ret;
         ret = -1;
         goto do_exit;
@@ -279,14 +280,14 @@ int IOT_OTA_ReportProgress(void *handle, IOT_OTA_Progress_t progress, const char
         return -1;
     }
 
-    if (!ota_check_progress(progress)){
+    if (!ota_check_progress(progress)) {
         OTA_LOG_ERROR("progress is a invalid parameter");
         h_ota->err = IOT_OTAE_INVALID_PARAM;
         return -1;
     }
 
     if (NULL == (msg_reported = OTA_MALLOC(MSG_REPORT_LEN))) {
-        OTA_LOG_ERROR("malloc failed");
+        OTA_LOG_ERROR("allocate for msg_reported failed");
         h_ota->err = IOT_OTAE_NOMEM;
         return -1;
     }
@@ -317,8 +318,8 @@ do_exit:
 }
 
 
-//check whether is downloading
-bool IOT_OTA_IsFetching(void *handle)
+/* check whether is downloading */
+int IOT_OTA_IsFetching(void *handle)
 {
     OTA_Struct_pt h_ota = (OTA_Struct_pt)handle;
 
@@ -337,14 +338,14 @@ bool IOT_OTA_IsFetching(void *handle)
 }
 
 
-//check whether fetch over
-bool IOT_OTA_IsFetchFinish(void *handle)
+/* check whether fetch over */
+int IOT_OTA_IsFetchFinish(void *handle)
 {
     OTA_Struct_pt h_ota = (OTA_Struct_pt) handle;
 
     if (NULL == handle) {
         OTA_LOG_ERROR("handle is NULL");
-        return 0; 
+        return 0;
     }
 
     if (IOT_OTAS_UNINITED == h_ota->state) {
@@ -378,6 +379,9 @@ int IOT_OTA_FetchYield(void *handle, char *buf, uint32_t buf_len, uint32_t timeo
         h_ota->state = IOT_OTAS_FETCHED;
         h_ota->err = IOT_OTAE_FETCH_FAILED;
         return -1;
+    } else if (0 == h_ota->size_fetched) {
+        /* force report status in the first */
+        IOT_OTA_ReportProgress(h_ota, IOT_OTAP_FETCH_PERCENTAGE_MIN, "Enter in downloading state");
     }
 
     h_ota->size_last_fetched = ret;
@@ -407,72 +411,70 @@ int IOT_OTA_Ioctl(void *handle, IOT_OTA_CmdType_t type, void *buf, size_t buf_le
         return IOT_OTAE_INVALID_STATE;
     }
 
-    switch( type ) {
-    case IOT_OTAG_FETCHED_SIZE:
-        if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
-            OTA_LOG_ERROR("Invalid parameter");
-            h_ota->err = IOT_OTAE_INVALID_PARAM;
-            return -1;
-        } else {
-            *((uint32_t *)buf) = h_ota->size_fetched;
-            return 0;
-        }
-        break;
-
-    case IOT_OTAG_FILE_SIZE:
-        if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
-            OTA_LOG_ERROR("Invalid parameter");
-            h_ota->err = IOT_OTAE_INVALID_PARAM;
-            return -1;
-        } else {
-            *((uint32_t *)buf) = h_ota->size_file;
-            return 0;
-        };
-        break;
-
-    case IOT_OTAG_VERSION:
-        strncpy(buf, h_ota->version, buf_len);
-        ((char *)buf)[buf_len-1] = '\0';
-        break;
-
-    case IOT_OTAG_MD5SUM:
-        strncpy(buf, h_ota->md5sum, buf_len);
-        ((char *)buf)[buf_len-1] = '\0';
-        break;
-
-    case IOT_OTAG_CHECK_FIRMWARE:
-        if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
-            OTA_LOG_ERROR("Invalid parameter");
-            h_ota->err = IOT_OTAE_INVALID_PARAM;
-            return -1;
-        } else if (h_ota->state != IOT_OTAS_FETCHED) {
-            h_ota->err = IOT_OTAE_INVALID_STATE;
-            OTA_LOG_ERROR("Firmware can be checked in IOT_OTAS_FETCHED state only");
-            return -1;
-        } else {
-            char md5_str[33];
-            otalib_MD5Finalize(h_ota->md5, md5_str);
-            OTA_LOG_DEBUG("origin=%s, now=%s", h_ota->md5sum, md5_str);
-            if (0 == strcmp(h_ota->md5sum, md5_str)) {
-                *((uint32_t *)buf) = 1;
+    switch (type) {
+        case IOT_OTAG_FETCHED_SIZE:
+            if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
+                OTA_LOG_ERROR("Invalid parameter");
+                h_ota->err = IOT_OTAE_INVALID_PARAM;
+                return -1;
             } else {
-                *((uint32_t *)buf) = 0;
+                *((uint32_t *)buf) = h_ota->size_fetched;
+                return 0;
             }
-            return 0;
-        }
 
-    default:
-        OTA_LOG_ERROR("invalid cmd type");
-        h_ota->err = IOT_OTAE_INVALID_PARAM;
-        return -1;
+        case IOT_OTAG_FILE_SIZE:
+            if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
+                OTA_LOG_ERROR("Invalid parameter");
+                h_ota->err = IOT_OTAE_INVALID_PARAM;
+                return -1;
+            } else {
+                *((uint32_t *)buf) = h_ota->size_file;
+                return 0;
+            };
+
+        case IOT_OTAG_VERSION:
+            strncpy(buf, h_ota->version, buf_len);
+            ((char *)buf)[buf_len - 1] = '\0';
+            break;
+
+        case IOT_OTAG_MD5SUM:
+            strncpy(buf, h_ota->md5sum, buf_len);
+            ((char *)buf)[buf_len - 1] = '\0';
+            break;
+
+        case IOT_OTAG_CHECK_FIRMWARE:
+            if ((4 != buf_len) || (0 != ((unsigned long)buf & 0x3))) {
+                OTA_LOG_ERROR("Invalid parameter");
+                h_ota->err = IOT_OTAE_INVALID_PARAM;
+                return -1;
+            } else if (h_ota->state != IOT_OTAS_FETCHED) {
+                h_ota->err = IOT_OTAE_INVALID_STATE;
+                OTA_LOG_ERROR("Firmware can be checked in IOT_OTAS_FETCHED state only");
+                return -1;
+            } else {
+                char md5_str[33];
+                otalib_MD5Finalize(h_ota->md5, md5_str);
+                OTA_LOG_DEBUG("origin=%s, now=%s", h_ota->md5sum, md5_str);
+                if (0 == strcmp(h_ota->md5sum, md5_str)) {
+                    *((uint32_t *)buf) = 1;
+                } else {
+                    *((uint32_t *)buf) = 0;
+                }
+                return 0;
+            }
+
+        default:
+            OTA_LOG_ERROR("invalid cmd type");
+            h_ota->err = IOT_OTAE_INVALID_PARAM;
+            return -1;
     }
 
     return 0;
 }
 
 
-//Get last error code
-IOT_OTA_Err_t IOT_OTA_GetLastError(void *handle)
+/* Get last error code */
+int IOT_OTA_GetLastError(void *handle)
 {
     OTA_Struct_pt h_ota = (OTA_Struct_pt) handle;
 

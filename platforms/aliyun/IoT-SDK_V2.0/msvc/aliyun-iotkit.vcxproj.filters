@@ -1,0 +1,353 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="sample">
+      <UniqueIdentifier>{247f8b4a-0d4f-4efc-8167-ee6e5bfd9f6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{af24acf8-e444-404e-95f3-33dbea003e49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OTA">
+      <UniqueIdentifier>{d6595954-2974-4fb2-b3c6-23e01e6c3760}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="COAP">
+      <UniqueIdentifier>{f60952e4-bc0f-4fcb-b547-7e634f68d27e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="http">
+      <UniqueIdentifier>{61804e5e-c498-441c-b50b-ccfe90dc3977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{1e2b4d4c-eceb-4005-859c-1cb319522fae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="COAP\iot-coap-c">
+      <UniqueIdentifier>{f8fd5d91-6201-416a-9dee-18ae31760efc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mqtt">
+      <UniqueIdentifier>{9a89ff70-a4d2-41eb-b607-40e004000709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mqtt\MQTTPacket">
+      <UniqueIdentifier>{63cf42aa-ca43-461b-ad35-d89c5d79a5fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="packages">
+      <UniqueIdentifier>{0c889640-60e9-4f0e-8c4f-197d44306d76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="packages\mbedtls">
+      <UniqueIdentifier>{4cc0fde5-dc9e-49f5-8cd5-ce3f6bdf655a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="packages\LITE-log">
+      <UniqueIdentifier>{5994d74a-28b6-4adc-9ae3-d7e44f5c97c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="packages\LITE-utils">
+      <UniqueIdentifier>{c9646b56-25f9-41a3-9d6d-132beb045dd5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sample\mqtt\mqtt-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\ssl\mbedtls\HAL_DTLS_mbedtls.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\ssl\mbedtls\HAL_TLS_mbedtls.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\os\win7\HAL_OS_win7.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\os\win7\HAL_TCP_win7.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\aes.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\asn1parse.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\base64.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\bignum.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\cipher.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\cipher_wrap.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ctr_drbg.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\debug.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\entropy.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\entropy_poll.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\error.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\md.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\md_wrap.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\net_sockets.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\oid.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pem.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pk.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pk_wrap.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pkparse.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\platform.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\rsa.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\sha1.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\sha256.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_ciphersuites.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_cli.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_cookie.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_tls.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\timing.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\x509.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\x509_crt.c">
+      <Filter>packages\mbedtls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\platform\os\win7\HAL_UDP_win7.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sample\mqtt\mqtt_rrpc-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sample\coap\coap-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sample\http\http-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sample\ota\ota_coap-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sample\ota\ota_mqtt-example.c">
+      <Filter>sample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ota\ota.c">
+      <Filter>OTA</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPDeserialize.c">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPExport.c">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPMessage.c">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPNetwork.c">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPSerialize.c">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coap\iotx_ca_cert.c">
+      <Filter>COAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\coap\iotx_coap_api.c">
+      <Filter>COAP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http\iotx_http_api.c">
+      <Filter>http</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\guider\id2_guider.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\system\ca.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\system\device.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\guider\guider.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\system\report.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\digest\utils_base64.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\misc\utils_epoch_time.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\digest\utils_hmac.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\misc\utils_httpc.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\misc\utils_list.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\digest\utils_md5.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\misc\utils_net.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\digest\utils_sha1.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils\misc\utils_timer.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sdk-impl\sdk-impl.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\mqtt_client.c">
+      <Filter>mqtt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTConnectClient.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTDeserializePublish.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTPacket.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTSerializePublish.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTSubscribeClient.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTUnsubscribeClient.c">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-log\lite-log.c">
+      <Filter>packages\LITE-log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\lite-utils_prog.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\lite-utils_testsuites.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\json_parser.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\json_token.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\mem_stats.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\string_utils.c">
+      <Filter>packages\LITE-utils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\ota\ota_internal.h">
+      <Filter>OTA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPDeserialize.h">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPExport.h">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPMessage.h">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPNetwork.h">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPSerialize.h">
+      <Filter>COAP\iot-coap-c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\mqtt_client.h">
+      <Filter>mqtt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTConnect.h">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTPacket.h">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTPublish.h">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTSubscribe.h">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTUnsubscribe.h">
+      <Filter>mqtt\MQTTPacket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\json_parser.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\lite-list.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils_config.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils_internal.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\mem_stats.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-utils\string_utils.h">
+      <Filter>packages\LITE-utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-log\lite-log.h">
+      <Filter>packages\LITE-log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\packages\LITE-log\lite-log_internal.h">
+      <Filter>packages\LITE-log</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\packages\iot-coap-c\README.md">
+      <Filter>COAP\iot-coap-c</Filter>
+    </None>
+  </ItemGroup>
+</Project>

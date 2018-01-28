@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8EB457EF-3FD3-4689-84D7-EF3779A15428}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>aliyun_iot_mqtt</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>nIOTX_WITHOUT_TLS;__func__=__FUNCTION__;MQTT_COMM_ENABLED;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\src\import\windows\include;$(ProjectDir)\..\src\guider;$(ProjectDir)\..\src\packages\mbedtls-in-iotkit\include;$(ProjectDir)\..\src\import\windows\include\tfs;$(ProjectDir)\..\src\mqtt;$(ProjectDir)\..\src\mqtt\MQTTPacket;$(ProjectDir)\..\src\ota;$(ProjectDir)\..\src\packages\iot-coap-c;$(ProjectDir)\..\src\packages\LITE-log;$(ProjectDir)\..\src\packages\LITE-utils;$(ProjectDir)\..\src\sdk-impl;$(ProjectDir)\..\src\sdk-impl\exports;$(ProjectDir)\..\src\sdk-impl\imports;$(ProjectDir)\..\src\sdk-tests;$(ProjectDir)\..\src\shadow;$(ProjectDir)\..\src\system;$(ProjectDir)\..\src\tfs;$(ProjectDir)\..\src\utils\digest;$(ProjectDir)\..\src\utils\misc</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>nIOTX_WITHOUT_TLS;__func__=__FUNCTION__;MQTT_COMM_ENABLED;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\src\import\windows\include;$(ProjectDir)\..\src\guider;$(ProjectDir)\..\src\packages\mbedtls-in-iotkit\include;$(ProjectDir)\..\src\import\windows\include\tfs;$(ProjectDir)\..\src\mqtt;$(ProjectDir)\..\src\mqtt\MQTTPacket;$(ProjectDir)\..\src\ota;$(ProjectDir)\..\src\packages\iot-coap-c;$(ProjectDir)\..\src\packages\LITE-log;$(ProjectDir)\..\src\packages\LITE-utils;$(ProjectDir)\..\src\sdk-impl;$(ProjectDir)\..\src\sdk-impl\exports;$(ProjectDir)\..\src\sdk-impl\imports;$(ProjectDir)\..\src\sdk-tests;$(ProjectDir)\..\src\shadow;$(ProjectDir)\..\src\system;$(ProjectDir)\..\src\tfs;$(ProjectDir)\..\src\utils\digest;$(ProjectDir)\..\src\utils\misc</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sample\coap\coap-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\sample\http\http-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\sample\mqtt\mqtt-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\sample\mqtt\mqtt_rrpc-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\sample\ota\ota_coap-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\sample\ota\ota_mqtt-example.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\coap\iotx_ca_cert.c" />
+    <ClCompile Include="..\src\coap\iotx_coap_api.c" />
+    <ClCompile Include="..\src\guider\guider.c" />
+    <ClCompile Include="..\src\guider\id2_guider.c" />
+    <ClCompile Include="..\src\http\iotx_http_api.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTConnectClient.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTDeserializePublish.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTPacket.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTSerializePublish.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTSubscribeClient.c" />
+    <ClCompile Include="..\src\mqtt\MQTTPacket\MQTTUnsubscribeClient.c" />
+    <ClCompile Include="..\src\mqtt\mqtt_client.c" />
+    <ClCompile Include="..\src\ota\ota.c" />
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPDeserialize.c" />
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPExport.c" />
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPMessage.c" />
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPNetwork.c" />
+    <ClCompile Include="..\src\packages\iot-coap-c\CoAPSerialize.c" />
+    <ClCompile Include="..\src\packages\LITE-log\lite-log.c" />
+    <ClCompile Include="..\src\packages\LITE-utils\json_parser.c" />
+    <ClCompile Include="..\src\packages\LITE-utils\json_token.c" />
+    <ClCompile Include="..\src\packages\LITE-utils\lite-utils_prog.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\lite-utils_testsuites.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\packages\LITE-utils\mem_stats.c" />
+    <ClCompile Include="..\src\packages\LITE-utils\string_utils.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\aes.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\asn1parse.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\base64.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\bignum.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\cipher.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\cipher_wrap.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ctr_drbg.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\debug.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\entropy.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\entropy_poll.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\error.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\md.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\md_wrap.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\net_sockets.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\oid.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pem.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pk.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pkparse.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\pk_wrap.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\platform.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\rsa.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\sha1.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\sha256.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_ciphersuites.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_cli.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_cookie.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\ssl_tls.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\timing.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\x509.c" />
+    <ClCompile Include="..\src\packages\mbedtls-in-iotkit\library\x509_crt.c" />
+    <ClCompile Include="..\src\platform\os\win7\HAL_OS_win7.c" />
+    <ClCompile Include="..\src\platform\os\win7\HAL_TCP_win7.c" />
+    <ClCompile Include="..\src\platform\os\win7\HAL_UDP_win7.c" />
+    <ClCompile Include="..\src\platform\ssl\mbedtls\HAL_DTLS_mbedtls.c" />
+    <ClCompile Include="..\src\platform\ssl\mbedtls\HAL_TLS_mbedtls.c" />
+    <ClCompile Include="..\src\sdk-impl\sdk-impl.c" />
+    <ClCompile Include="..\src\system\ca.c" />
+    <ClCompile Include="..\src\system\device.c" />
+    <ClCompile Include="..\src\system\report.c" />
+    <ClCompile Include="..\src\utils\digest\utils_base64.c" />
+    <ClCompile Include="..\src\utils\digest\utils_hmac.c" />
+    <ClCompile Include="..\src\utils\digest\utils_md5.c" />
+    <ClCompile Include="..\src\utils\digest\utils_sha1.c" />
+    <ClCompile Include="..\src\utils\misc\utils_epoch_time.c" />
+    <ClCompile Include="..\src\utils\misc\utils_httpc.c" />
+    <ClCompile Include="..\src\utils\misc\utils_list.c" />
+    <ClCompile Include="..\src\utils\misc\utils_net.c" />
+    <ClCompile Include="..\src\utils\misc\utils_timer.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTConnect.h" />
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTPacket.h" />
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTPublish.h" />
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTSubscribe.h" />
+    <ClInclude Include="..\src\mqtt\MQTTPacket\MQTTUnsubscribe.h" />
+    <ClInclude Include="..\src\mqtt\mqtt_client.h" />
+    <ClInclude Include="..\src\ota\ota_internal.h" />
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPDeserialize.h" />
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPExport.h" />
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPMessage.h" />
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPNetwork.h" />
+    <ClInclude Include="..\src\packages\iot-coap-c\CoAPSerialize.h" />
+    <ClInclude Include="..\src\packages\LITE-log\lite-log.h" />
+    <ClInclude Include="..\src\packages\LITE-log\lite-log_internal.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\json_parser.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\lite-list.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils_config.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\lite-utils_internal.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\mem_stats.h" />
+    <ClInclude Include="..\src\packages\LITE-utils\string_utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\packages\iot-coap-c\README.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

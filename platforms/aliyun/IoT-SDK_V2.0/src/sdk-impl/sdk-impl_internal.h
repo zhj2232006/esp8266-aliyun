@@ -30,6 +30,7 @@ extern "C" {
 #include "lite-log.h"
 #include "lite-utils.h"
 #include "guider.h"
+#include "id2_guider.h"
 
 #define POINTER_SANITY_CHECK(ptr, err) \
     do { \

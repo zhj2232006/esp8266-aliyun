@@ -21,16 +21,14 @@
 #include "iot_import.h"
 #include "lite-log.h"
 #include "lite-utils.h"
-#include "utils_debug.h"
 #include "utils_timer.h"
 #include "utils_list.h"
 #include "device.h"
-#include "mqtt_client.h"
 
 #include "shadow.h"
 #include "shadow_common.h"
 
-//check return code
+/* check return code */
 #define CHECK_RETURN_CODE(ret_code) \
     do{ \
         if (ret_code < 0) { \
@@ -39,7 +37,7 @@
     }while(0);
 
 
-//check return code of snprintf
+/* check return code of HAL_Snprintf */
 #define CHECK_SNPRINTF_RET(ret_code, buf_len) \
     do{ \
         if ((ret_code) < 0) { \
@@ -50,7 +48,7 @@
     }while(0);
 
 
-//return handle of format data.
+/* return handle of format data. */
 iotx_err_t iotx_ds_common_format_init(iotx_shadow_pt pshadow,
                                       format_data_pt pformat,
                                       char *buf,
@@ -71,28 +69,28 @@ iotx_err_t iotx_ds_common_format_init(iotx_shadow_pt pshadow,
 
     size_free_space = pformat->buf_size;
 
-    ret = snprintf(pformat->buf,
-                   size_free_space,
-                   "{\"%s\":\"%s\"",
-                   "method",
-                   method);
+    ret = HAL_Snprintf(pformat->buf,
+                       size_free_space,
+                       "{\"%s\":\"%s\"",
+                       "method",
+                       method);
 
     CHECK_SNPRINTF_RET(ret, size_free_space);
     pformat->offset = ret;
 
 
-    //copy the JOSN head
+    /* copy the JOSN head */
     size_free_space = pformat->buf_size - pformat->offset;
     if (NULL != head_str) {
-        ret = snprintf(pformat->buf + pformat->offset,
-                       size_free_space,
-                       ",%s",
-                       head_str);
+        ret = HAL_Snprintf(pformat->buf + pformat->offset,
+                           size_free_space,
+                           ",%s",
+                           head_str);
         CHECK_SNPRINTF_RET(ret, size_free_space);
         pformat->offset += ret;
     }
 
-    pformat->flag_new = true;
+    pformat->flag_new = IOT_TRUE;
 
     return SUCCESS_RETURN;
 }
@@ -108,11 +106,11 @@ iotx_err_t iotx_ds_common_format_add(iotx_shadow_pt pshadow,
     uint32_t size_free_space;
 
     if (pformat->flag_new) {
-        pformat->flag_new = false;
+        pformat->flag_new = IOT_FALSE;
     } else {
-        //Add comma char.
+        /* Add comma char. */
         size_free_space = pformat->buf_size - pformat->offset;
-        if (size_free_space > 1) { //there is enough space to accommodate ',' char.
+        if (size_free_space > 1) { /* there is enough space to accommodate ',' char. */
             *(pformat->buf + pformat->offset) = ',';
             *(pformat->buf + pformat->offset + 1) = '\0';
             ++pformat->offset;
@@ -123,18 +121,18 @@ iotx_err_t iotx_ds_common_format_add(iotx_shadow_pt pshadow,
 
     size_free_space = pformat->buf_size - pformat->offset;
 
-    //add the string: "${pattr->pattr_name}":"
-    ret = snprintf(pformat->buf + pformat->offset,
-                   size_free_space,
-                   "\"%s\":",
-                   name);
+    /* add the string: "${pattr->pattr_name}":" */
+    ret = HAL_Snprintf(pformat->buf + pformat->offset,
+                       size_free_space,
+                       "\"%s\":",
+                       name);
 
     CHECK_SNPRINTF_RET(ret, size_free_space);
 
     pformat->offset += ret;
     size_free_space = pformat->buf_size - pformat->offset;
 
-    //convert attribute data to JSON string, and add to buffer
+    /* convert attribute data to JSON string, and add to buffer */
     ret = iotx_ds_common_convert_data2string(pformat->buf + pformat->offset,
             size_free_space,
             datatype,
@@ -157,19 +155,19 @@ iotx_err_t iotx_ds_common_format_finalize(iotx_shadow_pt pshadow, format_data_pt
     uint16_t size_free_space = pformat->buf_size - pformat->offset;
 
     if (NULL != tail_str) {
-        ret = snprintf(pformat->buf + pformat->offset, size_free_space, "%s", tail_str);
+        ret = HAL_Snprintf(pformat->buf + pformat->offset, size_free_space, "%s", tail_str);
         CHECK_SNPRINTF_RET(ret, size_free_space);
         pformat->offset += ret;
     }
 
     size_free_space = pformat->buf_size - pformat->offset;
 
-    ret = snprintf(pformat->buf + pformat->offset,
-                   size_free_space,
-                   UPDATE_JSON_STR_END,
-                   iotx_device_info_get()->device_id,
-                   iotx_ds_common_get_tokennum(pshadow),
-                   iotx_ds_common_get_version(pshadow));
+    ret = HAL_Snprintf(pformat->buf + pformat->offset,
+                       size_free_space,
+                       UPDATE_JSON_STR_END,
+                       iotx_device_info_get()->device_id,
+                       iotx_ds_common_get_tokennum(pshadow),
+                       iotx_ds_common_get_version(pshadow));
 
     CHECK_SNPRINTF_RET(ret, size_free_space);
     pformat->offset += ret;
@@ -195,11 +193,11 @@ int iotx_ds_common_convert_data2string(
     }
 
     if (IOTX_SHADOW_INT32 == type) {
-        ret = snprintf(buf, buf_len, "%" PRIi32, *(int32_t *)(pData));
+        ret = HAL_Snprintf(buf, buf_len, "%" PRIi32, *(int32_t *)(pData));
     } else if (IOTX_SHADOW_STRING == type) {
-        ret = snprintf(buf, buf_len, "\"%s\"", (char *)(pData));
+        ret = HAL_Snprintf(buf, buf_len, "\"%s\"", (char *)(pData));
     } else if (IOTX_SHADOW_NULL == type) {
-        ret = snprintf(buf, buf_len, "%s", "\"null\"");
+        ret = HAL_Snprintf(buf, buf_len, "%s", "\"null\"");
     } else {
         log_err("Error data type");
         ret = -1;
@@ -255,7 +253,7 @@ void iotx_ds_common_update_time(iotx_shadow_pt pshadow, uint32_t new_timestamp)
 }
 
 
-bool iotx_ds_common_check_attr_existence(
+int iotx_ds_common_check_attr_existence(
             iotx_shadow_pt pshadow,
             iotx_shadow_attr_pt pattr)
 {
@@ -269,7 +267,7 @@ bool iotx_ds_common_check_attr_existence(
 }
 
 
-//register attribute to list
+/* register attribute to list */
 iotx_err_t iotx_ds_common_register_attr(
             iotx_shadow_pt pshadow,
             iotx_shadow_attr_pt pattr)
@@ -287,7 +285,7 @@ iotx_err_t iotx_ds_common_register_attr(
 }
 
 
-//remove attribute to list
+/* remove attribute to list */
 iotx_err_t iotx_ds_common_remove_attr(
             iotx_shadow_pt pshadow,
             iotx_shadow_attr_pt pattr)
@@ -313,7 +311,7 @@ void iotx_ds_common_update_version(iotx_shadow_pt pshadow, uint32_t version)
 {
     HAL_MutexLock(pshadow->mutex);
 
-    //version number always grow up
+    /* version number always grow up */
     if (version > pshadow->inner_data.version) {
         pshadow->inner_data.version = version;
     }
@@ -365,30 +363,30 @@ char *iotx_ds_common_generate_topic_name(iotx_shadow_pt pshadow, const char *top
         return NULL;
     }
 
-    ret = snprintf(topic_full,
-                   len,
-                   SHADOW_TOPIC_FMT,
-                   topic,
-                   pdevice_info->product_key,
-                   pdevice_info->device_name);
+    ret = HAL_Snprintf(topic_full,
+                       len,
+                       SHADOW_TOPIC_FMT,
+                       topic,
+                       pdevice_info->product_key,
+                       pdevice_info->device_name);
     if (ret < 0) {
         LITE_free(topic_full);
         return NULL;
     }
 
-    IOTX_ASSERT(ret < len, "Memory should always enough.");
+    LITE_ASSERT(ret < len);
 
     return topic_full;
 }
 
 
-iotx_err_t iotx_ds_common_publish2update(iotx_shadow_pt pshadow, char *data, uint32_t data_len)
+int iotx_ds_common_publish2update(iotx_shadow_pt pshadow, char *data, uint32_t data_len)
 {
     iotx_mqtt_topic_info_t topic_msg;
 
-    //check if topic name have been generated or not
+    /* check if topic name have been generated or not */
     if (NULL == pshadow->inner_data.ptopic_update) {
-        //Have NOT update topic name, generate it.
+        /* Have NOT update topic name, generate it. */
         pshadow->inner_data.ptopic_update = iotx_ds_common_generate_topic_name(pshadow, "update");
         if (NULL == pshadow->inner_data.ptopic_update) {
             return FAIL_RETURN;

@@ -17,7 +17,9 @@ sub-mods: toolchain
 
 SUB_BUILD_VARS := \
     CFLAGS LDFLAGS \
+    IMPORT_DIR \
     TOP_DIR \
+    RULE_DIR \
     CONFIG_VENDOR \
     COMP_LIB \
     $(CROSS_CANDIDATES) \
@@ -39,6 +41,7 @@ CMDLINE_VARS := \
     STAMP_BLD_ENV \
     STAMP_UNPACK \
     TOP_DIR \
+    RULE_DIR \
 
 # When SUB_BUILD_VARS like $(CFLAGS) contains special character '$'
 # simply echo its value into 'Makefile' will cause '$' lost when GNU make read in again
@@ -46,12 +49,17 @@ CMDLINE_VARS := \
 $(STAMP_BLD_ENV): $(TOP_DIR)/makefile $(shell ls $(CONFIG_TPL) 2>/dev/null) \
                   $(wildcard $(RULE_DIR)/*.mk) \
                   $(shell grep "^ *include" $(TOP_DIR)/$(TOP_MAKEFILE)|awk '{ print $$NF }'|sed '/^\$$/d')
-	$(TOP_Q)rm -f $@
-	$(TOP_Q) \
-	$(foreach V, \
+	@rm -f $@
+	@$(foreach V, \
 	    $(sort $(SUB_BUILD_VARS)), \
 	        echo "$(V) := $(sort $($(V)))"|sed 's:\$$:$$$$:g' >> $(STAMP_BLD_ENV); \
 	)
+
+# note:
+#   sed -i "/CONFIG_$${i//\//\\/}.*/d" $(CONFIG_TPL);
+# above
+#   sed -i "1iCONFIG_$${i} = y" $(CONFIG_TPL)
+# was removed since modules will be skipped in some cases
 
 $(STAMP_BLD_VAR): $(foreach d,$(ALL_SUB_DIRS),$(d)/$(MAKE_SEGMENT)) $(STAMP_BLD_ENV) $(wildcard $(RULE_DIR)/*.mk)
 	$(TOP_Q) \
@@ -63,7 +71,6 @@ $(STAMP_BLD_VAR): $(foreach d,$(ALL_SUB_DIRS),$(d)/$(MAKE_SEGMENT)) $(STAMP_BLD_
 	        if [ ! -L $${i} ]; then \
 	            printf "CONFIGURE .............................. [%s]\n" $${i}; \
 	        fi; \
-	        sed -i "/CONFIG_$${i//\//\\/}.*/d" $(CONFIG_TPL); \
 	        sed -i "1iCONFIG_$${i} = y" $(CONFIG_TPL); \
 	        [ -f $(STAMP_POST_RULE) ] && sed -i "/target-$${i//\//\\/}.*/d" $(STAMP_POST_RULE) || true; \
 	        echo "target-$${i}:; @true" >> $(STAMP_POST_RULE); \
@@ -87,11 +94,10 @@ $(STAMP_BLD_VAR): $(foreach d,$(ALL_SUB_DIRS),$(d)/$(MAKE_SEGMENT)) $(STAMP_BLD_
 	if [ "$${VERBOSE}" != "" ]; then echo ""; fi; \
 )
 
-pre-sub-build: MOD = $(subst target-,,$(filter-out $@,$(MAKECMDGOALS)))
-pre-sub-build: $(STAMP_BLD_ENV)
+pre-build: MOD = $(subst target-,,$(filter-out $@,$(MAKECMDGOALS)))
+pre-build: $(STAMP_BLD_ENV)
 	$(if $(filter 0,$(MAKELEVEL)),,@) \
 	$(strip $(foreach V, $(CMDLINE_VARS), $(V)="$($(V))") \
-	    PKG_UPDATE='$(PKG_UPDATE_$(MOD))' \
 	    PKG_SOURCE="$(PKG_SOURCE_$(MOD))" \
 	    PKG_SWITCH="$(PKG_SWITCH_$(MOD))" \
 	) \
@@ -105,7 +111,7 @@ $(ALL_SUB_DIRS): SUB_LOG_OPT = $(if $(Q),,2>&1|tee -a $(OUTPUT_DIR)/$@/$(COMPILE
 
 $(ALL_SUB_DIRS): $(if $(filter 0,$(MAKELEVEL)),toolchain) $(STAMP_BLD_VAR)
 	$(TOP_Q)rm -f $(STAMP_PRJ_CFG)
-	$(TOP_Q)$(MAKE) --no-print-directory pre-sub-build target-$@
+	$(TOP_Q)$(MAKE) --no-print-directory pre-build target-$@
 ifeq (0,$(MAKELEVEL))
 	$(TOP_Q)$(MAKE) --no-print-directory -C $(OUTPUT_DIR)/$@ clean
 endif

@@ -39,7 +39,7 @@ static int tracking_malloc_callstack = 1;
 
 static int record_backtrace(int *level, char *** trace)
 {
-#define MAX_BT_LEVEL    20
+#define MAX_BT_LEVEL    8
 
     void       *buffer[MAX_BT_LEVEL];
 
@@ -94,7 +94,7 @@ void *LITE_malloc_internal(const char *f, const int l, int size)
         return NULL;
     }
 
-    ptr = malloc(size);
+    ptr = HAL_Malloc(size);
     if (!ptr) {
         return NULL;
     }
@@ -116,9 +116,9 @@ void *LITE_malloc_internal(const char *f, const int l, int size)
     iterations_in_use += 1;
     iterations_max_in_use = (iterations_in_use > iterations_max_in_use) ? iterations_in_use : iterations_max_in_use;
 
-    pos = malloc(sizeof(OS_malloc_record));
+    pos = HAL_Malloc(sizeof(OS_malloc_record));
     if(NULL == pos){
-        free(ptr);
+        HAL_Free(ptr);
         return NULL;
     }
     memset(pos, 0, sizeof(OS_malloc_record));
@@ -163,7 +163,7 @@ void *LITE_malloc_internal(const char *f, const int l, int size)
     memset(ptr, 0, size);
     return ptr;
 #else
-    ptr = malloc(size);
+    ptr = HAL_Malloc(size);
     if(NULL == ptr){
         return NULL;
     }
@@ -182,7 +182,7 @@ void LITE_free_internal(void *ptr)
     }
 
     pos = NULL;
-    list_for_each_entry(pos, &mem_recs, list) {
+    list_for_each_entry(pos, &mem_recs, list, OS_malloc_record) {
         if (pos->buf == ptr) {
             break;
         }
@@ -204,15 +204,15 @@ void LITE_free_internal(void *ptr)
         pos->line = 0;
 #if defined(_PLATFORM_IS_LINUX_)
         pos->bt_level = 0;
-        free(pos->bt_symbols);
+        HAL_Free(pos->bt_symbols);
         pos->bt_symbols = 0;
 #endif
 
         list_del(&pos->list);
-        free(pos);
+        HAL_Free(pos);
     }
 #endif
-    free(ptr);
+    HAL_Free(ptr);
 }
 
 void *LITE_malloc_routine(int size)
@@ -251,7 +251,7 @@ void LITE_dump_malloc_free_stats(int level)
         int         j;
         int         cnt = 0;
 
-        list_for_each_entry(pos, &mem_recs, list) {
+        list_for_each_entry(pos, &mem_recs, list, OS_malloc_record) {
             if (pos->buf) {
                 LITE_printf("%4d. %-24s Ln:%-5d @ %p: %4d bytes [",
                 ++cnt,

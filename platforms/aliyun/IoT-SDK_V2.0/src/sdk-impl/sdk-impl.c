@@ -16,9 +16,8 @@
  *
  */
 
-
-
 #include "sdk-impl_internal.h"
+#include "id2_crypto.h"
 
 void IOT_OpenLog(const char *ident)
 {
@@ -27,6 +26,7 @@ void IOT_OpenLog(const char *ident)
     if (NULL == mod) {
         mod = "---";
     }
+
     return LITE_openlog(mod);
 }
 
@@ -37,9 +37,9 @@ void IOT_CloseLog(void)
 
 void IOT_SetLogLevel(IOT_LogLevel level)
 {
-    LOGLEVEL            lvl = level;
+    LOGLEVEL            lvl = (LOGLEVEL)level;
 
-    if (lvl < LOG_EMERG_LEVEL || lvl > LOG_DEBUG_LEVEL) {
+    if (lvl > LOG_DEBUG_LEVEL) {
         log_err("Invalid input level: %d out of [%d, %d]", level,
                 LOG_EMERG_LEVEL,
                 LOG_DEBUG_LEVEL);
@@ -51,9 +51,9 @@ void IOT_SetLogLevel(IOT_LogLevel level)
 
 void IOT_DumpMemoryStats(IOT_LogLevel level)
 {
-    LOGLEVEL            lvl = level;
+    LOGLEVEL            lvl = (LOGLEVEL)level;
 
-    if (lvl < LOG_EMERG_LEVEL || lvl > LOG_DEBUG_LEVEL) {
+    if (lvl > LOG_DEBUG_LEVEL) {
         lvl = LOG_DEBUG_LEVEL;
         log_warning("Invalid input level, using default: %d => %d", level, lvl);
     }
@@ -61,6 +61,7 @@ void IOT_DumpMemoryStats(IOT_LogLevel level)
     return LITE_dump_malloc_free_stats(lvl);
 }
 
+#if defined(MQTT_COMM_ENABLED)
 int IOT_SetupConnInfo(const char *product_key,
                       const char *device_name,
                       const char *device_secret,
@@ -88,6 +89,32 @@ int IOT_SetupConnInfo(const char *product_key,
         *info_ptr = NULL;
         return -1;
     }
-
-    return 0;
 }
+
+#ifdef MQTT_ID2_AUTH
+int IOT_SetupConnInfoSecure(const char *product_key,
+                            const char *device_name,
+                            const char *device_secret,
+                            void **info_ptr)
+{
+    int rc;
+
+    STRING_PTR_SANITY_CHECK(product_key, -1);
+    STRING_PTR_SANITY_CHECK(device_name, -1);
+    STRING_PTR_SANITY_CHECK(device_secret, -1);
+    POINTER_SANITY_CHECK(info_ptr, -1);
+    iotx_device_info_init();
+    iotx_device_info_set(product_key, device_name, device_secret);
+
+    rc = iotx_guider_id2_authenticate();
+    if (rc == 0) {
+        *info_ptr = (void *)iotx_conn_info_get();
+    } else {
+        *info_ptr = NULL;
+    }
+
+    return rc;
+}
+#endif  /* #ifdef MQTT_ID2_AUTH */
+#endif  /* #if defined(MQTT_COMM_ENABLED)   */
+

@@ -138,6 +138,7 @@ INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/system
 INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/import/linux/include
 INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/guider
 INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/security
+INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/tfs
 INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/packages/LITE-log
 INCLUDES += -I $(PDIR)platforms/aliyun/IoT-SDK_V2.0/src/mqtt
 INCLUDES += -I $(PDIR)include/ota

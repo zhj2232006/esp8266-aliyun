@@ -70,7 +70,7 @@ void LITE_json_keys_release(list_head_t *keylist)
 {
     json_key_t         *pos, *tmp;
 
-    list_for_each_entry_safe(pos, tmp, keylist, list) {
+    list_for_each_entry_safe(pos, tmp, keylist, list, json_key_t) {
         if (pos->key) {
             LITE_free(pos->key);
         }

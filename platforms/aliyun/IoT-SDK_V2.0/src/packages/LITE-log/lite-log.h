@@ -27,19 +27,19 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "iot_import.h"
 
-#if 0
-#define LITE_printf                     printf
+#define LITE_printf                     HAL_Printf
 #define LITE_sprintf                    sprintf
-#define LITE_snprintf                   snprintf
+#define LITE_snprintf                   HAL_Snprintf
 
 typedef enum _LOGLEVEL {
-    LOG_EMERG_LEVEL = 0,    // OS system is unavailable
-    LOG_CRIT_LEVEL,         // current application aborting
-    LOG_ERR_LEVEL,          // current app-module error
-    LOG_WARNING_LEVEL,      // using default parameters
-    LOG_INFO_LEVEL,         // running messages
-    LOG_DEBUG_LEVEL,        // debugging messages
+    LOG_EMERG_LEVEL = 0,    /* OS system is unavailable */
+    LOG_CRIT_LEVEL,         /* current application aborting */
+    LOG_ERR_LEVEL,          /* current app-module error */
+    LOG_WARNING_LEVEL,      /* using default parameters */
+    LOG_INFO_LEVEL,         /* running messages */
+    LOG_DEBUG_LEVEL,        /* debugging messages */
 } LOGLEVEL;
 
 void    LITE_openlog(const char *ident);
@@ -51,12 +51,12 @@ void    LITE_set_loglevel(int level);
 int     LITE_hexdump(const char *title, const void *buf, const int len);
 
 void    LITE_syslog(const char *f, const int l, const int level, const char *fmt, ...);
-#define log_emerg(args...)      LITE_syslog(__FUNCTION__, __LINE__, LOG_EMERG_LEVEL, args)
-#define log_crit(args...)       LITE_syslog(__FUNCTION__, __LINE__, LOG_CRIT_LEVEL, args)
-#define log_err(args...)        LITE_syslog(__FUNCTION__, __LINE__, LOG_ERR_LEVEL, args)
-#define log_warning(args...)    LITE_syslog(__FUNCTION__, __LINE__, LOG_WARNING_LEVEL, args)
-#define log_info(args...)       LITE_syslog(__FUNCTION__, __LINE__, LOG_INFO_LEVEL, args)
-#define log_debug(args...)      LITE_syslog(__FUNCTION__, __LINE__, LOG_DEBUG_LEVEL, args)
+#define log_emerg(args,...)      LITE_syslog(__FUNCTION__, __LINE__, LOG_EMERG_LEVEL, args, ##__VA_ARGS__)
+#define log_crit(args,...)       LITE_syslog(__FUNCTION__, __LINE__, LOG_CRIT_LEVEL, args, ##__VA_ARGS__)
+#define log_err(args,...)        LITE_syslog(__FUNCTION__, __LINE__, LOG_ERR_LEVEL, args, ##__VA_ARGS__)
+#define log_warning(args,...)    LITE_syslog(__FUNCTION__, __LINE__, LOG_WARNING_LEVEL, args, ##__VA_ARGS__)
+#define log_info(args,...)       LITE_syslog(__FUNCTION__, __LINE__, LOG_INFO_LEVEL, args, ##__VA_ARGS__)
+#define log_debug(args,...)      LITE_syslog(__FUNCTION__, __LINE__, LOG_DEBUG_LEVEL, args, ##__VA_ARGS__)
 
 int     log_multi_line_internal(const char *f, const int l,
                                 const char *title, int level, char *payload, const char *mark);
@@ -64,99 +64,24 @@ int     log_multi_line_internal(const char *f, const int l,
     log_multi_line_internal(__func__, __LINE__, title, level, payload, mark)
 
 void    LITE_rich_hexdump(const char *f, const int l,
-            const int level,
-            const char *buf_str,
-            const void *buf_ptr,
-            const int buf_len
-);
+                          const int level,
+                          const char *buf_str,
+                          const void *buf_ptr,
+                          const int buf_len
+                         );
+
+#if defined(__GLIBC__)
 #define HEXDUMP_DEBUG(buf, len) \
     LITE_rich_hexdump(__func__, __LINE__, LOG_DEBUG_LEVEL, #buf, (const void *)buf, (const int)len)
 
 #define HEXDUMP_INFO(buf, len)      \
     LITE_rich_hexdump(__func__, __LINE__, LOG_INFO_LEVEL, #buf, (const void *)buf, (const int)len)
 #else
-    
-typedef enum _LOGLEVEL {
-    LOG_EMERG_LEVEL = 0,    // OS system is unavailable
-    LOG_CRIT_LEVEL,         // current application aborting
-    LOG_ERR_LEVEL,          // current app-module error
-    LOG_WARNING_LEVEL,      // using default parameters
-    LOG_INFO_LEVEL,         // running messages
-    LOG_DEBUG_LEVEL,        // debugging messages
-} LOGLEVEL;
+#define HEXDUMP_DEBUG(buf, len) \
+    LITE_rich_hexdump(__func__, __LINE__, LOG_DEBUG_LEVEL, #buf, buf, len)
 
-void    LITE_openlog(const char *ident);
-void    LITE_closelog(void);
-int     LITE_log_enabled(void);
-char   *LITE_get_logname(void);
-int     LITE_get_loglevel(void);
-void    LITE_set_loglevel(int level);
-
-#define LITE_snprintf                   snprintf
-
-//#define SSL_LOG(format, ...) \
-//    do { \
-//        os_printf("[inf] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-//        fflush(stdout);\
-//    }while(0);
-
-#if 0
-#define SSL_LOG1(format, ...) \
-    do { \
-        printf("[inf] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-        ;\
-    }while(0);
-
-#define log_emerg(format, ...) \
-        do { \
-            printf("[log_emerg] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#define log_crit(format, ...) \
-        do { \
-            printf("[log_crit] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#define log_err(format, ...) \
-        do { \
-            printf("[log_err] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#define log_warning(format, ...) \
-        do { \
-            printf("[log_warning] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#define log_info(format, ...) \
-        do { \
-            printf("[log_info] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#define log_debug(format, ...) \
-        do { \
-            printf("[log_debug] %s(%d): "format"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__);\
-            ;\
-        }while(0);
-
-#else
-#define log_emerg(arg...)
-#define log_crit(arg...)
-#define log_err(arg...)
-#define log_warning(arg...)
-#define log_info(arg...)
-#define log_debug(format, ...)
-#endif
-
-#define HEXDUMP_DEBUG(buf, len)
-#define HEXDUMP_INFO(buf, len)
-
-#define log_multi_line(level, title, fmt, payload, mark)
-
+#define HEXDUMP_INFO(buf, len)      \
+    LITE_rich_hexdump(__func__, __LINE__, LOG_INFO_LEVEL, #buf, buf, len)
 #endif
 
 #if defined(__cplusplus)

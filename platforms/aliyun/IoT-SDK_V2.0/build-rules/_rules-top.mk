@@ -1,4 +1,4 @@
-.PHONY: detect config reconfig toolchain sub-mods final-out env
+.PHONY: doc detect config reconfig toolchain sub-mods final-out env
 
 all: detect config toolchain sub-mods final-out
 	$(TOP_Q) \
@@ -13,20 +13,36 @@ RESET_ENV_VARS := \
     HOST \
     LDFLAGS \
 
-detect:
-	@for i in $$(grep "^ *include" $(TOP_DIR)/$(TOP_MAKEFILE)|awk '{ print $$NF }'|sed '/^\$$/d'); do \
-	    if [ $$i -nt $(CONFIG_TPL) ]; then \
-	        echo "Re-configure project since '$${i}' updated"|grep --color ".*"; \
-	        $(RECURSIVE_MAKE) reconfig; \
-	    fi; \
-	done
+doc:
+	$(TOP_Q)rm -rf html
+	$(TOP_Q) \
+	sed \
+	    's:^PROJECT_NAME.*:PROJECT_NAME = $(PRJ_NAME):g; s:^PROJECT_NUMBER.*:PROJECT_NUMBER = $(PRJ_VERSION):g' \
+	build-rules/misc/Doxyfile.tpl > $(OUTPUT_DIR)/.doxygen.cfg
+	$(TOP_Q)doxygen $(OUTPUT_DIR)/.doxygen.cfg
 
-	@if [ ! -d $(OUTPUT_DIR) ]; then \
-	    echo "Re-configure project since '$(OUTPUT_DIR)' non-exist!"|grep --color ".*"; \
-	    $(RECURSIVE_MAKE) reconfig; \
+detect:
+	@if [ -d .git ]; then \
+	    mkdir -p .git/hooks; \
+	    for i in $(RULE_DIR)/hooks/*; do \
+	        cp -f $$i .git/hooks && chmod a+x .git/hooks/$$(basename $$i); \
+	    done; \
 	fi
 
+#	@for i in $$(grep "^ *include" $(TOP_DIR)/$(TOP_MAKEFILE)|awk '{ print $$NF }'|sed '/^\$$/d'); do \
+#	    if [ $$i -nt $(CONFIG_TPL) ]; then \
+#	        echo "Re-configure project since '$${i}' updated"|grep --color ".*"; \
+#	        $(RECURSIVE_MAKE) reconfig; \
+#	    fi; \
+#	done
+#
+#	@if [ ! -d $(OUTPUT_DIR) ]; then \
+#	    echo "Re-configure project since '$(OUTPUT_DIR)' non-exist!"|grep --color ".*"; \
+#	    $(RECURSIVE_MAKE) reconfig; \
+#	fi
+
 config:
+
 	@mkdir -p $(OUTPUT_DIR) $(INSTALL_DIR)
 	@mkdir -p $(SYSROOT_BIN) $(SYSROOT_INC) $(SYSROOT_LIB)
 
@@ -46,11 +62,11 @@ config:
 	        echo ""; \
 	    fi \
 	else \
-	    if [ "$(BUILD_CONFIG)" != "" ] && [ -f $(BUILD_CONFIG) ]; then \
+	    if [ "$(DEFAULT_BLD)" != "" ] && [ -f $(DEFAULT_BLD) ]; then \
 	        printf "# Automatically Generated Section End\n\n" >> $(CONFIG_TPL); \
-	        printf "# %-10s %s\n" "VENDOR :" $$(basename $(BUILD_CONFIG)|cut -d. -f2) >> $(CONFIG_TPL); \
-	        printf "# %-10s %s\n" "MODEL  :" $$(basename $(BUILD_CONFIG)|cut -d. -f3) >> $(CONFIG_TPL); \
-	        cat $(BUILD_CONFIG) >> $(CONFIG_TPL); \
+	        printf "# %-10s %s\n" "VENDOR :" $$(basename $(DEFAULT_BLD)|cut -d. -f2) >> $(CONFIG_TPL); \
+	        printf "# %-10s %s\n" "MODEL  :" $$(basename $(DEFAULT_BLD)|cut -d. -f3) >> $(CONFIG_TPL); \
+	        cat $(DEFAULT_BLD) >> $(CONFIG_TPL); \
 	    else \
 	        printf "SELECT A CONFIGURATION:\n\n"; \
 	        LIST=$$(for i in $(CONFIG_DIR)/config.*.*; do basename $${i}; done|sort); \
@@ -69,7 +85,7 @@ config:
 	    command grep -m 1 "MODEL *:" $(CONFIG_TPL)|cut -c 3- && \
 	    echo ""; \
 	    if [ "$(MAKECMDGOALS)" = "config" ]; then true; else \
-	        if [ "$(BUILD_CONFIG)" = "" ]; then \
+	        if [ "$(DEFAULT_BLD)" = "" ]; then \
 	            touch $(STAMP_PRJ_CFG); \
 	        fi; \
 	    fi; \
@@ -96,7 +112,7 @@ ifneq ($(CONFIG_TOOLCHAIN_NAME),)
 endif
 
 reconfig: distclean
-	$(TOP_Q)+$(RECURSIVE_MAKE) config
+	$(TOP_Q)+$(RECURSIVE_MAKE) config DEFAULT_BLD=not-exist-actually
 	$(TOP_Q)rm -f $(STAMP_PRJ_CFG)
 
 clean:

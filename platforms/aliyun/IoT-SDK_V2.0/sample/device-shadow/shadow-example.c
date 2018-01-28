@@ -20,21 +20,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "iot_import.h"
 #include "iot_export.h"
 
-#define PRODUCT_KEY             "*******************"
-#define DEVICE_NAME             "*******************"
-#define DEVICE_SECRET           "*******************"
+#define PRODUCT_KEY             "yfTuLfBJTiL"
+#define DEVICE_NAME             "TestDeviceForDemo"
+#define DEVICE_SECRET           "fSCl9Ns5YPnYN8Ocg0VEel1kXFnRlV6c"
 
-#define MSG_LEN_MAX             (1024)
+#define SHADOW_MQTT_MSGLEN      (1024)
 
-#define SHADOW_TRACE(fmt, args...)  \
+#define SHADOW_TRACE(fmt, ...)  \
     do { \
-        printf("%s|%03d :: ", __func__, __LINE__); \
-        printf(fmt, ##args); \
-        printf("%s", "\r\n"); \
+        HAL_Printf("%s|%03d :: ", __func__, __LINE__); \
+        HAL_Printf(fmt, ##__VA_ARGS__); \
+        HAL_Printf("%s", "\r\n"); \
     } while(0)
 
 /**
@@ -66,7 +67,7 @@ int demo_device_shadow(char *msg_buf, char *msg_readbuf)
     iotx_err_t rc;
     iotx_conn_info_pt puser_info;
     void *h_shadow;
-    iotx_shadow_para_t shadaw_para;
+    iotx_shadow_para_t shadow_para;
 
     /* Device AUTH */
     rc = IOT_SetupConnInfo(PRODUCT_KEY, DEVICE_NAME, DEVICE_SECRET, (void **)&puser_info);
@@ -76,27 +77,27 @@ int demo_device_shadow(char *msg_buf, char *msg_readbuf)
     }
 
     /* Construct a device shadow */
-    memset(&shadaw_para, 0, sizeof(iotx_shadow_para_t));
+    memset(&shadow_para, 0, sizeof(iotx_shadow_para_t));
 
-    shadaw_para.mqtt.port = puser_info->port;
-    shadaw_para.mqtt.host = puser_info->host_name;
-    shadaw_para.mqtt.client_id = puser_info->client_id;
-    shadaw_para.mqtt.username = puser_info->username;
-    shadaw_para.mqtt.password = puser_info->password;
-    shadaw_para.mqtt.pub_key = puser_info->pub_key;
+    shadow_para.mqtt.port = puser_info->port;
+    shadow_para.mqtt.host = puser_info->host_name;
+    shadow_para.mqtt.client_id = puser_info->client_id;
+    shadow_para.mqtt.username = puser_info->username;
+    shadow_para.mqtt.password = puser_info->password;
+    shadow_para.mqtt.pub_key = puser_info->pub_key;
 
-    shadaw_para.mqtt.request_timeout_ms = 2000;
-    shadaw_para.mqtt.clean_session = 0;
-    shadaw_para.mqtt.keepalive_interval_ms = 60000;
-    shadaw_para.mqtt.pread_buf = msg_readbuf;
-    shadaw_para.mqtt.read_buf_size = MSG_LEN_MAX;
-    shadaw_para.mqtt.pwrite_buf = msg_buf;
-    shadaw_para.mqtt.write_buf_size = MSG_LEN_MAX;
+    shadow_para.mqtt.request_timeout_ms = 2000;
+    shadow_para.mqtt.clean_session = 0;
+    shadow_para.mqtt.keepalive_interval_ms = 60000;
+    shadow_para.mqtt.pread_buf = msg_readbuf;
+    shadow_para.mqtt.read_buf_size = SHADOW_MQTT_MSGLEN;
+    shadow_para.mqtt.pwrite_buf = msg_buf;
+    shadow_para.mqtt.write_buf_size = SHADOW_MQTT_MSGLEN;
 
-    shadaw_para.mqtt.handle_event.h_fp = NULL;
-    shadaw_para.mqtt.handle_event.pcontext = NULL;
+    shadow_para.mqtt.handle_event.h_fp = NULL;
+    shadow_para.mqtt.handle_event.pcontext = NULL;
 
-    h_shadow = IOT_Shadow_Construct(&shadaw_para);
+    h_shadow = IOT_Shadow_Construct(&shadow_para);
     if (NULL == h_shadow) {
         SHADOW_TRACE("construct device shadow failed!");
         return rc;
@@ -168,8 +169,8 @@ int main()
     IOT_OpenLog("shadow");
     IOT_SetLogLevel(IOT_LOG_DEBUG);
 
-    char *msg_buf = (char *)HAL_Malloc(MSG_LEN_MAX);
-    char *msg_readbuf = (char *)HAL_Malloc(MSG_LEN_MAX);
+    char *msg_buf = (char *)HAL_Malloc(SHADOW_MQTT_MSGLEN);
+    char *msg_readbuf = (char *)HAL_Malloc(SHADOW_MQTT_MSGLEN);
 
     demo_device_shadow(msg_buf, msg_readbuf);
 

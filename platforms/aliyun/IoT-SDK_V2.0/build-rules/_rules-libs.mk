@@ -4,11 +4,7 @@ ifdef LIBA_TARGET
 LIB_SRCS ?= $(wildcard *.c */*.c)
 LIB_OBJS ?= $(LIB_SRCS:.c=.o)
 
-ifneq (clean,$(MAKECMDGOALS))
 sinclude $(LIB_SRCS:.c=.d)
-endif
-
-$(LIBA_TARGET) :: before-build
 
 $(LIBA_TARGET) :: $(LIB_OBJS)
 	$(call Brief_Log,"AR")
@@ -23,7 +19,7 @@ ifneq (,$(strip $(LIB_OBJS)))
 endif
 	$(Q)mkdir -p $(SYSROOT_LIB)
 	$(Q)cp -f $@ $(SYSROOT_LIB)
-	$(call Copy_Headers, $(LIB_HEADERS),$(SYSROOT_INC),$(LIBHDR_DIR))
+	$(call Copy_Headers, $(LIB_HEADERS),$(SYSROOT_INC),$(LIB_HDRS_DIR))
 
 endif   # ifdef LIBA_TARGET
 
@@ -33,11 +29,7 @@ ifdef LIBSO_TARGET
 LIB_SRCS ?= $(wildcard *.c */*.c)
 LIB_OBJS ?= $(LIB_SRCS:.c=.o)
 
-ifneq (clean,$(MAKECMDGOALS))
 sinclude $(LIB_SRCS:.c=.d)
-endif
-
-$(LIBSO_TARGET) :: before-build
 
 $(LIBSO_TARGET) :: SELF_LIBNAME = $(subst lib,,$(subst .so,,$(LIBSO_TARGET)))
 $(LIBSO_TARGET) :: LDFLAGS := $(filter-out -l$(SELF_LIBNAME), $(LDFLAGS))
@@ -56,7 +48,7 @@ $(LIBSO_TARGET) :: DynamicLib_Install
 	$(Q)cp -f $(LIB_OBJS) $(LIBOBJ_TMPDIR)/$(shell $(SHELL_DBG) basename $(CURDIR))
 	$(Q)mkdir -p $(SYSROOT_LIB)
 	$(Q)install -m 0755 $@ $(SYSROOT_LIB)
-	$(call Copy_Headers, $(LIB_HEADERS),$(SYSROOT_INC),$(LIBHDR_DIR))
+	$(call Copy_Headers, $(LIB_HEADERS),$(SYSROOT_INC),$(LIB_HDRS_DIR))
 
 endif   # ifdef LIBSO_TARGET
 

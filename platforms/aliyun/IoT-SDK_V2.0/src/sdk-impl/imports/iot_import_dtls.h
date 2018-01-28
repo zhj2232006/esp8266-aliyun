@@ -17,33 +17,27 @@
  */
 
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdarg.h>
 
 #include "iot_import_coap.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/platform.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/debug.h"
-#include "mbedtls/timing.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ssl_cookie.h"
-
 
 #ifndef __COAP_DTLS_H__
 #define __COAP_DTLS_H__
 
-
 #define dtls_log_print(level, ...) \
     {\
-    fprintf(stderr, "%s [%s #%d]   ",level, __FILE__, __LINE__); \
-    fprintf(stderr, __VA_ARGS__);\
+        fprintf(stderr, "%s [%s #%d]   ",level, __FILE__, __LINE__); \
+        fprintf(stderr, __VA_ARGS__);\
     }
 
-#define DTLS_TRC(fmt,  args...)  dtls_log_print("<TRACE>", fmt, ##args)
-#define DTLS_DUMP(fmt, args...)  dtls_log_print("<DUMP> ", fmt, ##args)
-#define DTLS_DEBUG(fmt,args...)  dtls_log_print("<DEBUG>", fmt, ##args)
-#define DTLS_INFO(fmt, args...)  dtls_log_print("<INFO> ", fmt, ##args)
-#define DTLS_ERR(fmt,  args...)  dtls_log_print("<ERROR>", fmt, ##args)
+#define DTLS_TRC(fmt,  ...)  dtls_log_print("<TRACE>", fmt, ##__VA_ARGS__)
+#define DTLS_DUMP(fmt, ...)  dtls_log_print("<DUMP> ", fmt, ##__VA_ARGS__)
+#define DTLS_DEBUG(fmt,...)  dtls_log_print("<DEBUG>", fmt, ##__VA_ARGS__)
+#define DTLS_INFO(fmt, ...)  dtls_log_print("<INFO> ", fmt, ##__VA_ARGS__)
+#define DTLS_ERR(fmt,  ...)  dtls_log_print("<ERROR>", fmt, ##__VA_ARGS__)
 
 #define DTLS_ERROR_BASE       (1<<24)
 
@@ -59,57 +53,91 @@
 #define DTLS_READ_DATA_FAILED          (DTLS_ERROR_BASE | 8)
 
 
-typedef  int (*coap_dtls_send_t)(void *socket_id,
-                           const unsigned char  *p_data,
-                                 size_t          datalen);
-
-
-typedef  int (*coap_dtls_recv_t)(void *socket_id,
-                                 unsigned char   *p_data,
-                                 size_t           datalen);
-
-typedef  int (*coap_dtls_recv_timeout_t)(void *socket_id,
-                              unsigned char   *p_data,
-                              size_t           datalen,
-                              unsigned int     timeout);
-
-
-typedef struct
-{
-    int               socket_id;
-    unsigned char     remote_addr[NETWORK_ADDR_LEN];
-    unsigned short    remote_port;
-} dtls_network_t;
-
-
-typedef struct
-{
-    dtls_network_t            network;
-    coap_dtls_send_t          send_fn;
-    coap_dtls_recv_t          recv_fn;
-    coap_dtls_recv_timeout_t  recv_timeout_fn;
+typedef struct {
     unsigned char             *p_ca_cert_pem;
     char                      *p_host;
+    unsigned short             port;
 } coap_dtls_options_t;
 
 
 typedef void DTLSContext;
 
-DTLSContext *HAL_DTLSSession_init();
-
-unsigned int HAL_DTLSSession_create(DTLSContext *conetxt, coap_dtls_options_t  *p_options);
-
-unsigned int HAL_DTLSSession_write(DTLSContext *conetxt,
-                          const unsigned char   *p_data,
-                                unsigned int    *p_datalen);
+/** @defgroup group_platform platform
+ *  @{
+ */
 
 
-unsigned int HAL_DTLSSession_read(DTLSContext *conetxt,
-                               unsigned char   *p_data,
-                               unsigned int    *p_datalen,
-                               unsigned int     timeout);
+/** @defgroup group_platform_dtls dtls
+ *  @{
+ */
 
-unsigned int HAL_DTLSSession_free(DTLSContext *conetxt);
 
+/**
+ * @brief Establish a DSSL connection.
+ *
+ * @param [in] p_options: @n Specify paramter of DTLS
+   @verbatim
+           p_host : @n Specify the hostname(IP) of the DSSL server
+             port : @n Specify the DSSL port of DSSL server
+    p_ca_cert_pem : @n Specify the root certificate which is PEM format.
+   @endverbatim
+ * @return DSSL handle.
+ * @see None.
+ * @note None.
+ */
+DTLSContext *HAL_DTLSSession_create(coap_dtls_options_t  *p_options);
+
+/**
+ * @brief Write data into the specific DSSL connection.
+ *
+ * @param [in] context @n A descriptor identifying a connection.
+ * @param [in] p_data @n A pointer to a buffer containing the data to be transmitted.
+ * @param [in] p_datalen @n The length, in bytes, of the data pointed to by the 'p_data' parameter.
+ * @retval DTLS_SUCCESS : Success.
+   @retval        other : Fail.
+ * @see None.
+ */
+unsigned int HAL_DTLSSession_write(DTLSContext *context,
+                                   const unsigned char   *p_data,
+                                   unsigned int    *p_datalen);
+/**
+ * @brief Read data from the specific DSSL connection with timeout parameter.
+ *        The API will return immediately if len be received from the specific DSSL connection.
+ *
+ * @param [in] context @n A descriptor identifying a DSSL connection.
+ * @param [in] p_data @n A pointer to a buffer to receive incoming data.
+ * @param [in] p_datalen @n The length, in bytes, of the data pointed to by the 'p_data' parameter.
+ * @param [in] timeout_ms @n Specify the timeout value in millisecond. In other words, the API block 'timeout_ms' millisecond maximumly.
+ * @return The result of read data from DSSL connection
+ * @retval DTLS_SUCCESS : Read success.
+ * @retval DTLS_FATAL_ALERT_MESSAGE : Recv peer fatal alert message.
+ * @retval DTLS_PEER_CLOSE_NOTIFY : The DTLS session was closed by peer.
+ * @retval DTLS_READ_DATA_FAILED : Read data fail.
+ * @see None.
+ */
+unsigned int HAL_DTLSSession_read(DTLSContext *context,
+                                  unsigned char   *p_data,
+                                  unsigned int    *p_datalen,
+                                  unsigned int     timeout_ms);
+/**
+ * @brief Destroy the specific DSSL connection.
+ *
+ * @param[in] context: @n Handle of the specific connection.
+ *
+ * @return The result of free dtls session
+ * @retval DTLS_SUCCESS : Read success.
+ * @retval DTLS_INVALID_PARAM : Invalid parameter.
+ * @retval DTLS_INVALID_CA_CERTIFICATE : Invalid CA Certificate.
+ * @retval DTLS_HANDSHAKE_IN_PROGRESS : Handshake in progress.
+ * @retval DTLS_HANDSHAKE_FAILED : Handshake failed.
+ * @retval DTLS_FATAL_ALERT_MESSAGE : Recv peer fatal alert message.
+ * @retval DTLS_PEER_CLOSE_NOTIFY : The DTLS session was closed by peer.
+ * @retval DTLS_SESSION_CREATE_FAILED : Create session fail.
+ * @retval DTLS_READ_DATA_FAILED : Read data fail.
+ */
+unsigned int HAL_DTLSSession_free(DTLSContext *context);
+
+/** @} */ /* end of platform_dtls */
+/** @} */ /* end of platform */
 
 #endif

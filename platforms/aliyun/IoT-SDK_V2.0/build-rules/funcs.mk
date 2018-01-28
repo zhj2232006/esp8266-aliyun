@@ -27,15 +27,6 @@ define Inspect_Env
 endef
 endif
 
-define Customize_With
-	if ! diff $(1) $(2) > /dev/null; then \
-	    echo -ne "\e[1;31m"; \
-	    printf "\r%s %-27s%s\n" "[UP]" "$(shell basename $(strip $(2)))" "<= $(strip $(1))"; \
-	    cp -f $(1) $(2); \
-	    echo -ne "\e[0m"; \
-	fi
-endef
-
 # 31, red. 32, green. 33, yellow. 34, blue. 35, magenta. 36, cyan. 37, white.
 define Brief_Log
 	@if [ "$1" = "CC" ]; then \
@@ -97,7 +88,7 @@ endef
 #
 #	    ($(foreach d,$(COMP_LIB_COMPONENTS), \
 #
-#	        $(RECURSIVE_MAKE) pre-sub-build target-$(d) && \
+#	        $(RECURSIVE_MAKE) pre-build target-$(d) && \
 #	        $(MAKE) --no-print-directory -C $(OUTPUT_DIR)/$(d) $(LIBA_TARGET_$(d)) \
 #	            $(if $(Q),,2>&1|tee -a $(OUTPUT_DIR)/$(d)/$(COMPILE_LOG)) \
 #	            $(if $(Q),,2>&1|tee -a $(OUTPUT_DIR)/$(COMPILE_LOG)) \
@@ -117,7 +108,9 @@ define Build_CompLib
 	            echo -e "\rFailed to build $(LIBA_TARGET_$(d)) in $(d)"; \
 	            exit 10; \
 	        else \
-	            rm -f $(SYSROOT_LIB)/$(LIBA_TARGET_$(d)); \
+	            if [ "$(LIBA_TARGET_$(d))" != "" ]; then \
+	                rm -f $(SYSROOT_LIB)/$(LIBA_TARGET_$(d)); \
+	            fi; \
 	        fi; \
 	    )); \
 	    if  [ $$? != 0 ]; then \

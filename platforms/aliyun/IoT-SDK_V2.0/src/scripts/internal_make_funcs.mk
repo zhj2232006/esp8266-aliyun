@@ -8,15 +8,31 @@ $(eval \
 endef
 
 define Post_Distro
+    @rm -rf $(FINAL_DIR)/include/{LITE*,mbed*}
+    @rm -rf $(FINAL_DIR)/lib/libiot_{utils,log}.a
+
+    @if [ "$(filter -D_PLATFORM_IS_WINDOWS_,$(CFLAGS))" != "" ]; then \
+        cd $(FINAL_DIR)/bin; \
+        for i in $$(ls); do mv $${i} $${i}.exe; done; \
+        cd $${OLDPWD}; \
+    fi
+
     @find $(FINAL_DIR) -name "*.[ch]" -exec chmod a-x {} \;
     @mkdir -p $(FINAL_DIR)/src
-    @cat doc/export.sdk.demo/head.mk >  $(FINAL_DIR)/src/Makefile
+    $(if $(filter y,$(FEATURE_MQTT_ID2_AUTH)),
+        @cp -f $(OUTPUT_DIR)/src/tfs/$(LIBA_TARGET_src/tfs) $(FINAL_DIR)/lib
+        @cat doc/export.sdk.demo/head_id2.mk > $(FINAL_DIR)/src/Makefile,
+        @cat doc/export.sdk.demo/head.mk > $(FINAL_DIR)/src/Makefile
+        @rm -f $(FINAL_DIR)/lib/libtfs*.a)
     $(if $(filter y,$(FEATURE_MQTT_COMM_ENABLED)),
         @cp -f sample/mqtt/mqtt-example.c $(FINAL_DIR)/src/mqtt-example.c
         @cat doc/export.sdk.demo/mqtt.mk >> $(FINAL_DIR)/src/Makefile)
     $(if $(filter y,$(FEATURE_COAP_COMM_ENABLED)),
-        @cp -f sample/coap/iotx_coap_client.c $(FINAL_DIR)/src/coap-example.c
+        @cp -f sample/coap/coap-example.c $(FINAL_DIR)/src/coap-example.c
         @cat doc/export.sdk.demo/coap.mk >> $(FINAL_DIR)/src/Makefile)
+    $(if $(filter y,$(FEATURE_HTTP_COMM_ENABLED)),
+        @cp -f sample/http/http-example.c $(FINAL_DIR)/src/http-example.c
+        @cat doc/export.sdk.demo/http.mk >> $(FINAL_DIR)/src/Makefile)
     @chmod a-x $(FINAL_DIR)/src/*
 
     @echo ""
@@ -24,7 +40,7 @@ define Post_Distro
     @echo "o BUILD COMPLETE WITH FOLLOWING SWITCHES:"
     @echo "----"
     @( \
-    $(foreach V,$(SETTING_VARS), \
+    $(foreach V,$(SWITCH_VARS), \
         $(if $(findstring FEATURE_,$(V)), \
             printf "%-32s : %-s\n" "    $(V)" "$($(V))"; \
         ) \
@@ -39,9 +55,13 @@ define Post_Distro
         } \
         print "+-- "$$NF}' FS='/' | sed 's!\(.*\)!    &!g'
     @echo ""
-    @echo "o BINARY FOOTPRINT CONSIST:"
-    @echo "----"
-    @STAGED=$(LIBOBJ_TMPDIR) STRIP=$(STRIP) $(SCRIPT_DIR)/stats_static_lib.sh $(FINAL_DIR)/lib/$(COMP_LIB)
+
+    @if [ "$(CONFIG_LIB_EXPORT)" = "static" ]; then \
+        echo "o BINARY FOOTPRINT CONSIST:"; \
+        echo "----"; \
+        STAGED=$(LIBOBJ_TMPDIR) STRIP=$(strip $(STRIP)) $(SCRIPT_DIR)/stats_static_lib.sh $(FINAL_DIR)/lib/$(COMP_LIB); \
+    fi
+
     @echo "========================================================================="
     @echo ""
 endef

@@ -80,7 +80,7 @@ void HAL_Free(_IN_ void *ptr)
     return free(ptr);
 }
 
-uint32_t HAL_UptimeMs(void)
+uint64_t HAL_UptimeMs(void)
 {
     struct timeval tv = { 0 };
     uint32_t time_ms;
@@ -101,19 +101,52 @@ void HAL_SleepMs(_IN_ uint32_t ms)
 
     vTaskDelay(ms / portTICK_RATE_MS);
 }
-#if 0
+
+void HAL_Srandom(uint32_t seed)
+{
+    //srandom(seed);
+}
+
+uint32_t HAL_Random(uint32_t region)
+{
+    //return (region > 0) ? (random() % region) : 0;
+	return 0;
+}
+int HAL_Snprintf(_IN_ char *str, const int len, const char *fmt, ...)
+{
+    va_list args;
+    int     rc;
+
+    va_start(args, fmt);
+    rc = vsnprintf(str, len, fmt, args);
+    va_end(args);
+
+    return rc;
+}
+
+int HAL_Vsnprintf(_IN_ char *str, _IN_ const int len, _IN_ const char *format, va_list ap)
+{
+    return vsnprintf(str, len, format, ap);
+}
 void HAL_Printf(_IN_ const char *fmt, ...)
 {
     va_list args;
 
     va_start(args, fmt);
-    printf(fmt, args);
+    vprintf(fmt, args);
     va_end(args);
 
     fflush(stdout);
 }
-#endif
-char *HAL_GetPartnerID(char pid_str[])
+int HAL_GetPartnerID(char pid_str[])
 {
-    return NULL;
+    return 0;
+}
+int HAL_GetModuleID(char mid_str[MID_STRLEN_MAX])
+{
+    memset(mid_str, 0x0, MID_STRLEN_MAX);
+#ifdef __UBUNTU_SDK_DEMO__
+    strcpy(mid_str, "example.demo.module-id");
+#endif
+    return strlen(mid_str);
 }

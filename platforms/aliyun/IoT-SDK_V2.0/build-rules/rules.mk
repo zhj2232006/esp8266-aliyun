@@ -1,4 +1,6 @@
-include $(RULE_DIR)/funcs.mk
+include  $(RULE_DIR)/settings.mk
+sinclude $(CONFIG_TPL)
+include  $(RULE_DIR)/funcs.mk
 
 TOPDIR_NAME     := $(shell $(SHELL_DBG) basename $(TOP_DIR)|grep -m 1 -o \[-_a-zA-Z\]*[a-zA-Z])
 LIBOBJ_TMPDIR   := $(OUTPUT_DIR)/lib$(TOPDIR_NAME).objs
@@ -35,7 +37,7 @@ endif
 # To pass in RPATH related link flags
 
 COMP_LIB_NAME   := $(subst lib,,$(subst .so,,$(subst .a,,$(COMP_LIB))))
-RECURSIVE_MAKE  := $(MAKE) -s -C $(TOP_DIR) -f $(TOP_MAKEFILE)
+RECURSIVE_MAKE  := $(MAKE) $(if $(TOP_Q),-s) -C $(TOP_DIR) -f $(TOP_MAKEFILE)
 ALL_SUB_DIRS    := $(shell find -L $(TOP_DIR) ! -path "$(OUTPUT_DIR)/*" -name "$(MAKE_SEGMENT)" \
                             | sed 's:$(TOP_DIR)[/]*::;s:[/]*$(MAKE_SEGMENT)::')
 
@@ -44,11 +46,12 @@ SHOW_ENV_VARS   := \
     HOST_ARCH_BITS PREBUILT_LIBDIR RPATH_CFLAGS \
     CROSS_PREFIX DEPENDS CFLAGS CCLD LDFLAGS \
     CC LD AR STRIP OBJCOPY COMP_LIB_COMPONENTS \
-    MAKE_ENV_VARS MAKE_FN_VARS BUILD_CONFIG \
+    MAKE_ENV_VARS DEFAULT_BLD \
     LIBA_TARGET LIBSO_TARGET TARGET KMOD_TARGET \
-    SRCS OBJS LIB_SRCS LIB_OBJS LIBHDR_DIR LIB_HEADERS \
-    INTERNAL_INCLUDES IMPORT_DIR EXTERNAL_INCLUDES \
-    CONFIG_LIB_EXPORT OBJCOPY_FLAGS \
+    SRCS OBJS LIB_SRCS LIB_OBJS LIB_HDRS_DIR LIB_HEADERS \
+    INTERNAL_INCLUDES TOP_DIR PRJ_NAME PRJ_VERSION \
+    IMPORT_DIR IMPORT_VDRDIR EXTERNAL_INCLUDES \
+    CONFIG_LIB_EXPORT OBJCOPY_FLAGS CONFIG_VENDOR \
 
 ifndef CONFIG_LIB_EXPORT
 ifeq (y,$(strip $(CONFIG_EMB_GATEWAY_SDK)))
@@ -85,12 +88,21 @@ include $(RULE_DIR)/_rules-top.mk
 include $(RULE_DIR)/_rules-prefix.mk
 
 CROSS_CANDIDATES := CC CXX AR LD STRIP OBJCOPY
-export CC := $(CROSS_PREFIX)gcc
-export CXX := $(CROSS_PREFIX)g++
-export AR := $(CROSS_PREFIX)ar
-export LD := $(CROSS_PREFIX)ld
-export STRIP := $(CROSS_PREFIX)strip
-export OBJCOPY := $(CROSS_PREFIX)objcopy
+export CC       := $(if $(OVERRIDE_CC),     $(OVERRIDE_CC),     $(CROSS_PREFIX)gcc)
+export CXX      := $(if $(OVERRIDE_CXX),    $(OVERRIDE_CXX),    $(CROSS_PREFIX)g++)
+export AR       := $(if $(OVERRIDE_AR),     $(OVERRIDE_AR),     $(CROSS_PREFIX)ar)
+export LD       := $(if $(OVERRIDE_LD),     $(OVERRIDE_LD),     $(CROSS_PREFIX)ld)
+export OBJCOPY  := $(if $(OVERRIDE_OBJCOPY),$(OVERRIDE_OBJCOPY),$(CROSS_PREFIX)objcopy)
+
+ifneq (,$(OVERRIDE_STRIP))
+export STRIP    := $(OVERRIDE_STRIP)
+else
+ifneq (,$(CROSS_PREFIX))
+export STRIP    := $(CROSS_PREFIX)strip
+else
+export STRIP    := true
+endif
+endif
 
 include $(RULE_DIR)/_rules-dist.mk
 include $(RULE_DIR)/_rules-complib.mk
@@ -107,7 +119,7 @@ else    # ifdef SUBDIRS
 
 PKG_RPATH   := $(shell echo $(CURDIR)|sed 's:$(OUTPUT_DIR)/*::g')
 PKG_NAME    ?= $(shell basename $(CURDIR))
-PKG_SOURCE  ?= $(shell find $(PACKAGE_DIR) -name "$(PKG_NAME)*" | head -1)
+PKG_SOURCE  ?= $(shell [ -d $(PACKAGE_DIR) ] && find $(PACKAGE_DIR) -name "$(PKG_NAME)*" | head -1)
 
 DEPENDS     += $(DEPENDS_$(MODULE_NAME))
 DEPENDS     := $(sort $(strip $(DEPENDS)))

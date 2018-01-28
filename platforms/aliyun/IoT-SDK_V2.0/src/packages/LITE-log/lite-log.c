@@ -16,7 +16,6 @@
  *
  */
 
-
 #include "lite-log_internal.h"
 
 #define LITE_HEXDUMP_DRAWLINE(start_mark, len, end_mark)    \
@@ -57,7 +56,7 @@ int LITE_hexdump(const char *title, const void *buff, const int len)
             LITE_printf(" ");
             written += 1;
         }
-        LITE_sprintf((char *__restrict__)ascii + i % 16, "%c", ((buf[i] >= ' ' && buf[i] <= '~') ?  buf[i] : '.'));
+        LITE_sprintf((char *)ascii + i % 16, "%c", ((buf[i] >= ' ' && buf[i] <= '~') ?  buf[i] : '.'));
 
         if (((i + 1) % 16 == 0) || (i == len - 1)) {
             for (j = 0; j < 48 - written; ++j) {
@@ -76,7 +75,7 @@ int LITE_hexdump(const char *title, const void *buff, const int len)
     return 0;
 }
 
-#if defined(LITE_LOG_ENABLED)
+#if LITE_LOG_ENABLED
 static log_client logcb;
 
 static char *lvl_names[] = {
@@ -89,15 +88,17 @@ void LITE_syslog(const char *f, const int l, const int level, const char *fmt, .
     char       *o = tmpbuf;
     int         truncated = 0;
     va_list     ap;
-    // if (!strlen(LITE_get_logname()) || LITE_get_loglevel() < level || level < LOG_EMERG_LEVEL) {
-    //     return;
-    // }
+
+    if (!strlen(LITE_get_logname()) || LITE_get_loglevel() < level || level < LOG_EMERG_LEVEL) {
+        return;
+    }
 
     LITE_printf(LOG_PREFIX_FMT, lvl_names[level], f, l);
 
     memset(tmpbuf, 0, sizeof(logcb.text_buf));
     va_start(ap, fmt);
-    o += vsnprintf(o, LOG_MSG_MAXLEN + 1, fmt, ap);
+    o = tmpbuf;
+    o += HAL_Vsnprintf(o, LOG_MSG_MAXLEN + 1, fmt, ap);
     va_end(ap);
 
     if (o - tmpbuf > LOG_MSG_MAXLEN) {
@@ -216,11 +217,11 @@ void LITE_syslog(const char *f, const int l, const int level, const char *fmt, .
 {
     va_list         ap;
 
-    printf("%s/%d: ", f, l);
+    HAL_Printf("%s<%d>: ", f, l);
     va_start(ap, fmt);
     vprintf(fmt, ap);
     va_end(ap);
-    printf("\r\n");
+    HAL_Printf("\r\n");
 
     return;
 }
@@ -231,8 +232,8 @@ int log_multi_line_internal(const char *f, const int l,
                             char *payload,
                             const char *mark)
 {
-    printf("%s(%d):\r\n\r\n", f, l);
-    printf("%s\r\n", payload);
+    HAL_Printf("%s(%d):\r\n\r\n", f, l);
+    HAL_Printf("%s\r\n", payload);
 
     return 0;
 }
@@ -268,8 +269,8 @@ void LITE_rich_hexdump(const char *f, const int l,
                        const void *buf_ptr,
                        const int buf_len)
 {
-    printf("%s/%d: ", f, l);
-    printf("HEXDUMP %s @ %p[%d]\r\n", buf_str, buf_ptr, buf_len);
+    HAL_Printf("%s/%d: ", f, l);
+    HAL_Printf("HEXDUMP %s @ %p[%d]\r\n", buf_str, buf_ptr, buf_len);
     LITE_hexdump(buf_str, buf_ptr, buf_len);
 
     return;

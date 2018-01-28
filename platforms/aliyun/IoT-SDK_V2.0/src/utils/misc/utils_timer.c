@@ -19,7 +19,6 @@
 
 
 #include "iot_import.h"
-#include "utils_debug.h"
 #include "utils_timer.h"
 
 
@@ -98,7 +97,6 @@ void utils_time_countdown_ms(iotx_time_t *timer, uint32_t millisecond)
         return;
     }
 
-    IOTX_ASSERT(millisecond < (UINT32_MAX / 2), "time should NOT exceed UINT32_MAX/2!");
     timer->time = HAL_UptimeMs() + millisecond;
 }
 
